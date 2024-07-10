@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAM Merger</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-okaidia.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-bash.min.js"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>BAM Merger Configuration</h1>
+        <form id="configForm">
+            <div class="mb-3">
+                <label for="input_dir" class="form-label">Select the input folder containing BAM files:</label>
+                <input type="text" class="form-control" id="input_dir" name="input_dir" required>
+            </div>
+            <div class="mb-3">
+                <label for="output_dir" class="form-label">Select the output folder for merged BAM file:</label>
+                <input type="text" class="form-control" id="output_dir" name="output_dir" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Configuration</button>
+        </form>
+        <ul id="configList" class="list-group mt-3"></ul>
+
+        <button onclick="generateAndShowScript()" class="btn btn-secondary mb-3">Generate Script</button>
+        <!-- Zone de code pour afficher le script Bash -->
+        <pre><code class="language-bash" id="scriptArea"></code></pre>
+        <button onclick="copyToClipboard()">Copier</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('configForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/bam_merger', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const configList = document.getElementById('configList');
+                        const newItem = document.createElement('li');
+                        newItem.className = 'list-group-item';
+                        newItem.textContent = `Input: ${formData.get('input_dir')}, Output: ${formData.get('output_dir')}`;
+                        configList.appendChild(newItem);
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        });
+
+
+        function updateConfigList(configurations) {
+            const configList = document.getElementById('configList');
+            configList.innerHTML = ''; // Clear existing entries
+            configurations.forEach((config, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = `Config ${index + 1}: ${config.output_dir} - ${config.input_dir}`;
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.className = 'btn btn-danger btn-sm float-right';
+                deleteBtn.onclick = function () { deleteConfiguration(index); };
+                li.appendChild(deleteBtn);
+                configList.appendChild(li);
+            });
+        }
+
+        function deleteConfiguration(index) {
+            fetch('/delete_config_merge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ index })
+            }).then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        updateConfigList(result.configurations);
+                    } else {
+                        alert('Failed to delete configuration');
+                    }
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/get_configurations_merge')
+                .then(response => response.json())
+                .then(configurations => {
+                    updateConfigList(configurations);
+                })
+                .catch(error => console.error('Error loading configurations:', error));
+        });
+    </script>
+    <script>
+        function generateAndShowScript() {
+            fetch('/generate_bam_script')
+                .then(response => response.json())
+                .then(data => {
+                    const codeBlock = document.getElementById('scriptArea');
+                    codeBlock.textContent = data.script; // Utilisez textContent pour préserver les sauts de ligne
+                    Prism.highlightElement(codeBlock);  // Demandez à Prism de mettre en évidence le nouveau contenu
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+
+        function copyToClipboard() {
+            const text = document.getElementById('scriptArea').innerText; // Garde les sauts de ligne lors de la copie
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Texte copié avec succès!');
+            }, (err) => {
+                console.error('Erreur lors de la copie:', err);
+                alert('Erreur lors de la copie');
+            });
+        }
+    </script>
+</body>
+
+</html>
