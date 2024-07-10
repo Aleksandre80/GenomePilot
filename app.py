@@ -47,19 +47,9 @@ def accueil():
 def vcf_creator():
     if request.method == 'POST':
         # Extract file name and save the file
-        ref_genome_file = request.files['ref_genome']
+        ref_genome_path = request.form['ref_genome']
         bam_file = request.form['bam_file']
         output_vcf = request.form['output_vcf']
-
-        if not all([ref_genome_file.filename, bam_file, output_vcf]):
-            return jsonify(success=False, message="Please specify all fields.")
-
-        # Create the save directory if it does not exist
-        if not os.path.exists(app.config['UPLOAD_FOLDER']):
-            os.makedirs(app.config['UPLOAD_FOLDER'])
-
-        ref_genome_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(ref_genome_file.filename))
-        ref_genome_file.save(ref_genome_path)
 
         # Append the path instead of the FileStorage object
         configurations_vcf.append({
@@ -131,23 +121,16 @@ def basecalling():
     if request.method == 'POST':
         base_output_dir = request.form['base_output_dir']
         input_dir = request.form['input_dir']
-        ref_genome = request.files['ref_genome']
+        ref_genome_path = request.form['ref_genome']
         qs_scores = request.form['qs_scores']
         cuda_device = request.form['cuda_device']
         model = request.form['model']
         kit_name = request.form['kit_name']
 
-        if not all([base_output_dir, input_dir, ref_genome, qs_scores, cuda_device, model, kit_name]):
+        if not all([base_output_dir, input_dir, ref_genome_path, qs_scores, cuda_device, model, kit_name]):
             flash('Please fill all fields before adding a configuration.', 'error')
             return redirect(url_for('basecalling'))
         
-        # Créer le dossier de sauvegarde s'il n'existe pas déjà
-        if not os.path.exists(app.config['UPLOAD_FOLDER']):
-            os.makedirs(app.config['UPLOAD_FOLDER'])
-        
-        ref_genome_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(ref_genome.filename))
-        ref_genome.save(ref_genome_path)
-
         # Ajouter la configuration
         configurations_basecalling.append({
             "base_output_dir": base_output_dir,
