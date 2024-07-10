@@ -179,8 +179,8 @@ REF_GENOME="{config['ref_genome']}"
 INPUT_DIR="{config['input_dir']}"
 OUTPUT_DIR="{output_dir}"
 mkdir -p "${{OUTPUT_DIR}}"
-${{DORADO_BIN}} basecaller -x "{config['cuda_device']}" --min-qscore "{qscore}" --no-trim --emit_fastq ${{MODEL_PATH}} ${{INPUT_DIR}} | \\
-${{DORADO_BIN}} demux --kit-name "{config['kit_name']}" --emit_fastq --output-dir "${{OUTPUT_DIR}}"
+${{DORADO_BIN}} basecaller -x "{config['cuda_device']}" --min-qscore "{qscore}" --no-trim --emit-fastq ${{MODEL_PATH}} ${{INPUT_DIR}} | \\
+${{DORADO_BIN}} demux --kit-name "{config['kit_name']}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
 echo "Processing complete for {config['input_dir']} with Q-score {qscore}"
 """
             script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
@@ -198,7 +198,7 @@ def add_configuration():
     try:
         base_output_dir = request.form['base_output_dir']
         input_dir = request.form['input_dir']
-        ref_genome_file = request.files['ref_genome']
+        ref_genome_path = request.form['ref_genome']
         qs_scores = request.form['qs_scores']
         cuda_device = request.form['cuda_device']
         model = request.form['model']
@@ -206,9 +206,7 @@ def add_configuration():
 
         if not os.path.exists(app.config['UPLOAD_FOLDER']):
             os.makedirs(app.config['UPLOAD_FOLDER'])
-        
-        ref_genome_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(ref_genome_file.filename))
-        ref_genome_file.save(ref_genome_path)
+    
 
         new_config = {
             "base_output_dir": base_output_dir,
