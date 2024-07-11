@@ -135,15 +135,24 @@
         }
 
 
-        function copyToClipboard() {
-            const text = document.getElementById('scriptArea').innerText; // Garde les sauts de ligne lors de la copie
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Texte copié avec succès!');
-            }, (err) => {
-                console.error('Erreur lors de la copie:', err);
-                alert('Erreur lors de la copie');
-            });
-        }
+        document.getElementById('configForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            try {
+                const response = await fetch('/add_config', { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Network response was not ok.');
+                const result = await response.json();
+                if (result.success) {
+                    updateConfigList(result.configurations);
+                    this.reset(); // Reset form after submission
+                } else {
+                    throw new Error(result.message || 'Failed to add configuration');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
+        };
     </script>
 </body>
 
