@@ -1,8 +1,9 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'
@@ -38,12 +39,44 @@ class ConfigurationVCF(db.Model):
     output_vcf = db.Column(db.String(120), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
+def role_requis(*roles_requis):
+    def wrapper(fn):
+        @wraps(fn)
+        def decorated_view(*args, **kwargs):
+            if get_role_utilisateur() not in roles_requis:
+                flash("Accès refusé. Veuillez vous connecter avec un compte autorisé.", "warning")
+                return redirect(url_for('login'))
+            return fn(*args, **kwargs)
+        return decorated_view
+    return wrapper
 
 @app.route('/', methods=['GET', 'POST'])
+@role_requis('superadmin') 
 def accueil():
     return render_template('home.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        password = request.form['password']
+        role = "user"
+        if password == "Aleksandre":
+            role = "superadmin"
+        session['password'] = password
+        session['role'] = role
+        
+        if role == "admin" or role == "superadmin":
+            return redirect(url_for('accueil'))
+        else:
+            return redirect(url_for('login'))
+            
+    return render_template('login.html')
+
+def get_role_utilisateur():
+    return session.get('role', 'user')
     
 @app.route('/vcf_creator', methods=['GET', 'POST'])
+@role_requis('superadmin') 
 def vcf_creator():
     if request.method == 'POST':
         # Extract file name and save the file
@@ -72,6 +105,7 @@ def vcf_creator():
 
 
 @app.route('/generate_vcf_script', methods=['GET'])
+@role_requis('superadmin') 
 def generate_vcf_script():
     script_content = "#!/bin/bash\n\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_vcf:
@@ -83,6 +117,7 @@ def generate_vcf_script():
 
 
 @app.route('/bam_merger', methods=['GET', 'POST'])
+@role_requis('superadmin') 
 def bam_merger():
     if request.method == 'POST':
         input_dir = request.form['input_dir']
@@ -107,6 +142,7 @@ def bam_merger():
     return render_template('bam_merger.html')
 
 @app.route('/generate_bam_script', methods=['GET'])
+@role_requis('superadmin') 
 def generate_bam_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_merge:
@@ -117,6 +153,7 @@ def generate_bam_script():
 
 
 @app.route('/basecalling', methods=['GET', 'POST'])
+@role_requis('superadmin') 
 def basecalling():
     if request.method == 'POST':
         base_output_dir = request.form['base_output_dir']
@@ -147,6 +184,7 @@ def basecalling():
     return render_template('index.html', configurations=configurations_basecalling)
 
 @app.route('/generate_script', methods=['GET'])
+@role_requis('superadmin') 
 def generate_script():
     script_content = "#!/bin/bash\n\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_basecalling:
@@ -177,6 +215,7 @@ echo "Processing complete for {config['input_dir']} with Q-score {qscore}"
     return jsonify(script=script_content)
 
 @app.route('/add_config', methods=['POST'])
+@role_requis('superadmin') 
 def add_configuration():
     try:
         base_output_dir = request.form['base_output_dir']
@@ -219,19 +258,23 @@ def add_configuration():
         return jsonify(success=False, message=str(e))
     
 @app.route('/get_configurations_basecalling', methods=['GET'])
+@role_requis('superadmin') 
 def get_configurations_basecalling():
     return jsonify(configurations_basecalling)
 
 @app.route('/get_configurations_merge', methods=['GET'])
+@role_requis('superadmin') 
 def get_configurations_merge():
     return jsonify(configurations_merge)
 
 @app.route('/get_configurations_vcf', methods=['GET'])
+@role_requis('superadmin') 
 def get_configurations_vcf():
     return jsonify(configurations_vcf)
 
 
 @app.route('/delete_config', methods=['POST'])
+@role_requis('superadmin') 
 def delete_configuration():
     index = request.json['index']
     try:
@@ -241,6 +284,7 @@ def delete_configuration():
         return jsonify(success=False, message="Configuration not found")
     
 @app.route('/delete_config_merge', methods=['POST'])
+@role_requis('superadmin') 
 def delete_configuration_bam():
     index = request.json['index']
     try:
@@ -250,6 +294,7 @@ def delete_configuration_bam():
         return jsonify(success=False, message="Configuration not found")
     
 @app.route('/delete_config_vcf', methods=['POST'])
+@role_requis('superadmin') 
 def delete_configuration_vcf():
     index = request.json['index']
     try:
@@ -259,18 +304,21 @@ def delete_configuration_vcf():
         return jsonify(success=False, message="Configuration not found")
     
 @app.route('/history-basecalling')
+@role_requis('superadmin') 
 def history():
     configurations = ConfigurationBasecalling.query.all()
     configurations.sort(key=lambda x: x.date_created, reverse=True)
     return render_template('history-basecalling.html', configurations=configurations)
 
 @app.route('/history-merge')
+@role_requis('superadmin') 
 def history_merge():
     configurations = ConfigurationMerge.query.all()
     configurations.sort(key=lambda x: x.date_created, reverse=True)
     return render_template('history-merge.html', configurations=configurations)
 
 @app.route('/history-vcf')
+@role_requis('superadmin') 
 def history_vcf():
     configurations = ConfigurationVCF.query.all()
     configurations.sort(key=lambda x: x.date_created, reverse=True)
