@@ -27,17 +27,19 @@
     <div class="container">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
-                <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+                <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);"
+                    aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/">Home</a></li>
                         <li class="breadcrumb-item active"><a href="/basecalling">Basecalling + demultiplexing</a></li>
-                        <li class="breadcrumb-item active" aria-current="page"><a href="/history-basecalling">Historique</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><a
+                                href="/history-basecalling">Historique</a></li>
                     </ol>
-                  </nav>
+                </nav>
                 <h1 class="mb-4 flex-grow-1 text-center">Basecalling + demultiplexing</h1>
             </div>
         </div>
-        
+
         <form method="POST" enctype="multipart/form-data" id="configForm">
             <div class="mb-3">
                 <label for="base_output_dir" class="form-label">Set the base output directory:</label>
@@ -147,14 +149,31 @@
 
 
         function copyToClipboard() {
-            const text = document.getElementById('scriptArea').innerText; // Garde les sauts de ligne lors de la copie
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Texte copié avec succès!');
-            }, (err) => {
-                console.error('Erreur lors de la copie:', err);
-                alert('Erreur lors de la copie');
-            });
+            const textArea = document.getElementById('scriptArea');
+
+            // Vérifie si la copie programmatique est possible dans le contexte actuel
+            if (!navigator.clipboard) {
+                // Fallback: sélectionner le texte et utiliser document.execCommand('copy');
+                textArea.select();
+                document.execCommand('copy');
+                alert('Texte copié avec succès (fallback)!');
+            } else {
+                navigator.permissions.query({ name: "clipboard-write" }).then(result => {
+                    if (result.state === "granted" || result.state === "prompt") {
+                        // Copie le texte dans le presse-papiers
+                        navigator.clipboard.writeText(textArea.innerText).then(() => {
+                            alert('Texte copié avec succès!');
+                        }).catch(err => {
+                            console.error('Erreur lors de la copie:', err);
+                            alert('Erreur lors de la copie');
+                        });
+                    } else {
+                        alert("Permission de copie refusée");
+                    }
+                });
+            }
         }
+
 
 
     </script>
