@@ -127,26 +127,6 @@
                 })
                 .catch(error => console.error('Error:', error));
         }
-
-
-        document.getElementById('configForm').onsubmit = async function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            try {
-                const response = await fetch('/add_config', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error('Network response was not ok.');
-                const result = await response.json();
-                if (result.success) {
-                    updateConfigList(result.configurations);
-                    this.reset(); // Reset form after submission
-                } else {
-                    throw new Error(result.message || 'Failed to add configuration');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert(error.message);
-            }
-        };
     </script>
 </body>
 

@@ -4,16 +4,19 @@ from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from functools import wraps
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'
 app.config['UPLOAD_FOLDER'] = 'path_to_save'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///configurations.db'
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 configurations_basecalling = []
 configurations_merge = []
 configurations_vcf = []
+configurations_full_workflow = []
 
 class ConfigurationBasecalling(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,6 +41,20 @@ class ConfigurationVCF(db.Model):
     bam_file = db.Column(db.String(120), nullable=False)
     output_vcf = db.Column(db.String(120), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class FullWorkflowConfiguration(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    base_output_dir = db.Column(db.String(120), nullable=False)
+    input_dir = db.Column(db.String(120), nullable=False)
+    ref_genome = db.Column(db.String(120), nullable=False)
+    qs_scores = db.Column(db.String(120), nullable=False)
+    cuda_device = db.Column(db.String(120), nullable=False)
+    model = db.Column(db.String(120), nullable=False)
+    kit_name = db.Column(db.String(120), nullable=False)
+    vcf_output_file = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 
 def role_requis(*roles_requis):
     def wrapper(fn):
@@ -75,6 +92,100 @@ def login():
 def get_role_utilisateur():
     return session.get('role', 'user')
     
+@app.route('/full_workflow', methods=['GET', 'POST'])
+@role_requis('superadmin')
+def full_workflow():
+    if request.method == 'POST':
+        
+        base_output_dir=request.form['base_output_dir']
+        input_dir=request.form['input_dir']
+        ref_genome=request.form['ref_genome']
+        qs_scores=request.form['qs_scores']
+        cuda_device=request.form['cuda_device']
+        model=request.form['model']
+        kit_name=request.form['kit_name']
+        vcf_output_file=request.form['vcf_output_file']
+        
+        configurations_full_workflow.append({
+            "base_output_dir": base_output_dir,
+            "input_dir": input_dir,
+            "ref_genome": ref_genome,
+            "qs_scores": qs_scores,
+            "cuda_device": cuda_device,
+            "model": model,
+            "kit_name": kit_name,
+            "vcf_output_file": vcf_output_file
+        })
+
+        print(f"full_workflow", configurations_full_workflow)
+        
+        
+        new_config = FullWorkflowConfiguration(
+            base_output_dir=base_output_dir,
+            input_dir=input_dir,
+            ref_genome=ref_genome,
+            qs_scores=qs_scores,
+            cuda_device=cuda_device,
+            model=model,
+            kit_name=kit_name,
+            vcf_output_file=vcf_output_file
+        )
+        db.session.add(new_config)
+        db.session.commit()
+        return jsonify(success=True, message="Configuration added successfully.")
+    return render_template('full_workflow.html')
+
+
+@app.route('/generate_full_workflow_script', methods=['GET'])
+@role_requis('superadmin') 
+def generate_full_workflow_script():
+    if not configurations_full_workflow:  # Vérifie si la liste est vide
+        return jsonify(success=False, message="No configurations available")
+
+    script_content = "#!/bin/bash\n\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
+    
+    for config in configurations_full_workflow:
+        # Définir les chemins des outils et des dossiers pour chaque qscore
+        dorado_bin = "/home/grid/dorado-0.7.2-linux-x64/bin/dorado"
+        model_path = f"/home/grid/dorado-0.7.2-linux-x64/bin/{config['model']}"
+        
+        qs_scores_list = config['qs_scores'].split()
+        for qscore in qs_scores_list:
+            demultiplexed_dir = f"{config['base_output_dir']}/demultiplexed_q{qscore}"
+            script_content += f"mkdir -p \"{demultiplexed_dir}\"\n"
+            script_content += f"echo \"Starting Basecalling and Demultiplexing for Q-score {qscore}...\"\n"
+            script_content += f"{dorado_bin} basecaller -x \"{config['cuda_device']}\" --min-qscore \"{qscore}\" --no-trim --emit-fastq {model_path} \"{config['input_dir']}\" | \\\n"
+            script_content += f"{dorado_bin} demux --kit-name \"{config['kit_name']}\" --emit-fastq --output-dir \"{demultiplexed_dir}\"\n"
+            script_content += "echo \"Processing complete for {config['input_dir']} with Q-score {qscore}\"\n"
+            script_content += f"for fastq_file in \"{demultiplexed_dir}\"/*.fastq; do\n"
+            script_content += f"    bam_file=\"${{fastq_file%.fastq}}.bam\"\n"
+            script_content += f"    echo \"Aligning ${{fastq_file}} to reference genome...\"\n"
+            script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"$bam_file\"\n"
+            script_content += f"    samtools index \"$bam_file\"\n"
+            script_content += f"    echo \"Alignment and BAM conversion completed for $bam_file\"\n"
+            script_content += "done\n"
+
+            # Générer le VCF pour chaque qscore
+            vcf_filename = f"{config['vcf_output_file']}_q{qscore}.vcf"
+            script_content += "echo \"Starting VCF generation...\"\n"
+            script_content += f"samtools faidx \"{config['ref_genome']}\"\n"
+            script_content += f"samtools index \"$bam_file\"\n"
+            script_content += f"bcftools mpileup -Ou -f \"{config['ref_genome']}\" \"$bam_file\" | bcftools call -mv -Ob -o \"{vcf_filename}.bcf\"\n"
+            script_content += f"bcftools index \"{vcf_filename}.bcf\"\n"
+            script_content += f"bcftools view -Oz -o \"{vcf_filename}.gz\" \"{vcf_filename}.bcf\"\n"
+            script_content += f"tabix -p vcf \"{vcf_filename}.gz\"\n"
+            script_content += f"gunzip -c \"{vcf_filename}.gz\" > \"{vcf_filename}\"\n"
+            script_content += "echo \"VCF generation completed.\"\n"
+
+    script_content += "echo \"All processes are complete.\"\n"
+    return jsonify(script=script_content)
+
+
+
+
+
+
+
 @app.route('/vcf_creator', methods=['GET', 'POST'])
 @role_requis('superadmin') 
 def vcf_creator():
@@ -122,6 +233,7 @@ def bam_merger():
     if request.method == 'POST':
         input_dir = request.form['input_dir']
         output_dir = request.form['output_dir']
+        
         if not all([input_dir, output_dir]):
             # Gestion d'erreur simplifiée pour l'exemple
             return jsonify(success=False, message="Please specify both input and output directories.")
@@ -272,6 +384,11 @@ def get_configurations_merge():
 def get_configurations_vcf():
     return jsonify(configurations_vcf)
 
+@app.route('/get_configurations_full_workflow', methods=['GET'])
+@role_requis('superadmin') 
+def get_configurations_full_workflow():
+    return jsonify(configurations_full_workflow)
+
 
 @app.route('/delete_config', methods=['POST'])
 @role_requis('superadmin') 
@@ -303,6 +420,16 @@ def delete_configuration_vcf():
     except IndexError:
         return jsonify(success=False, message="Configuration not found")
     
+@app.route('/delete_config_full_workflow', methods=['POST'])
+@role_requis('superadmin') 
+def delete_configuration_full_workflow():
+    index = request.json['index']
+    try:
+        configurations_full_workflow.pop(index)
+        return jsonify(success=True, configurations=configurations_full_workflow)
+    except IndexError:
+        return jsonify(success=False, message="Configuration not found")
+    
 @app.route('/history-basecalling')
 @role_requis('superadmin') 
 def history():
@@ -323,6 +450,13 @@ def history_vcf():
     configurations = ConfigurationVCF.query.all()
     configurations.sort(key=lambda x: x.date_created, reverse=True)
     return render_template('history-vcf.html', configurations=configurations)
+
+@app.route('/history-vcf')
+@role_requis('superadmin') 
+def history_full_workflow():
+    configurations = FullWorkflowConfiguration.query.all()
+    configurations.sort(key=lambda x: x.date_created, reverse=True)
+    return render_template('history-full_workflow.html', configurations=configurations)
 
 if __name__ == '__main__':
     with app.app_context():

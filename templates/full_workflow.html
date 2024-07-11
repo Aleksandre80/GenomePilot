@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Workflow Configuration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-okaidia.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-bash.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-4">Full Workflow: Basecalling, Demultiplexing, BAM Merge, VCF Creation</h1>
+        <form method="POST" enctype="multipart/form-data" id="configForm">
+            <div class="mb-3">
+                <label for="base_output_dir" class="form-label">Set the base output directory:</label>
+                <input type="text" class="form-control" name="base_output_dir"
+                    placeholder="/data/validation_de_meth_TTR_FLG_2/no_sample/20240611_1220_X1_FLG114_2dac5e43/Basecalling"
+                    required>
+            </div>
+
+            <div class="mb-3">
+                <label for="input_dir" class="form-label">Select the folder for input:</label>
+                <input type="text" class="form-control" name="input_dir"
+                    placeholder="/data/validation_de_meth_TTR_FLG_2/no_sample/20240611_1220_X1_FLG114_2dac5e43/pod5​"
+                    required>
+            </div>
+
+            <div class="mb-3">
+                <label for="ref_genome" class="form-label">Select the genome file (e.g., .mmi):</label>
+                <input type="text" class="form-control" name="ref_genome" placeholder=".mmi" required>
+            </div>
+            <div class="mb-3">
+                <label for="qs_scores" class="form-label">Enter Q-scores separated by spaces:</label>
+                <input type="text" class="form-control" name="qs_scores" placeholder="14 17 19" required>
+            </div>
+            <div class="mb-3">
+                <label for="cuda_device" class="form-label">Specify the CUDA device (e.g., cuda:0):</label>
+                <input type="text" class="form-control" name="cuda_device" placeholder="cuda:all" required>
+            </div>
+            <div class="mb-3">
+                <label for="model" class="form-label">Enter the model name:</label>
+                <select class="form-control" name="model" required>
+                    <option value="">Please select a model</option>
+                    <optgroup label="R10 Kits">
+                        <option value="dna_r10.4.1_e8.2_260bps_fast@v3.5.2">dna_r10.4.1_e8.2_260bps_fast@v3.5.2</option>
+                        <option value="dna_r10.4.1_e8.2_260bps_fast@v4.0.0">dna_r10.4.1_e8.2_260bps_fast@v4.0.0</option>
+                        <option value="dna_r10.4.1_e8.2_260bps_fast@v4.1.0">dna_r10.4.1_e8.2_260bps_fast@v4.1.0</option>
+                        <option value="dna_r10.4.1_e8.2_260bps_hac@v3.5.2">dna_r10.4.1_e8.2_260bps_hac@v3.5.2</option>
+                        <option value="dna_r10.4.1_e8.2_260bps_hac@v4.0.0">dna_r10.4.1_e8.2_260bps_hac@v4.0.0</option>
+                        <option value="dna_r10.4.1_e8.2_260bps_hac@v4.1.0">dna_r10.4.1_e8.2_260bps_hac@v4.1.0</option>
+                        <option value="dna_r10.4.1_e8.2_260bps_sup@v3.5.2">dna_r10.4.1_e8.2_260bps_sup@v3.5.2</option>
+                        <option value="dna_r10.4.1_e8.2_260bps_sup@v4.0.0">dna_r10.4.1_e8.2_260bps_sup@v4.0.0</option>
+                        <option value="dna_r10.4.1_e8.2_260bps_sup@v4.1.0">dna_r10.4.1_e8.2_260bps_sup@v4.1.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_fast@v3.5.2">dna_r10.4.1_e8.2_400bps_fast@v3.5.2</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_fast@v4.0.0">dna_r10.4.1_e8.2_400bps_fast@v4.0.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_fast@v4.1.0">dna_r10.4.1_e8.2_400bps_fast@v4.1.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_fast@v4.2.0">dna_r10.4.1_e8.2_400bps_fast@v4.2.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_hac@v3.5.2">dna_r10.4.1_e8.2_400bps_hac@v3.5.2</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_hac@v4.0.0">dna_r10.4.1_e8.2_400bps_hac@v4.0.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_hac@v4.1.0">dna_r10.4.1_e8.2_400bps_hac@v4.1.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_hac@v4.2.0">dna_r10.4.1_e8.2_400bps_hac@v4.2.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_hac@v4.3.0">dna_r10.4.1_e8.2_400bps_hac@v4.3.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_hac@v5.0.0">dna_r10.4.1_e8.2_400bps_hac@v5.0.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_sup@v3.5.2">dna_r10.4.1_e8.2_400bps_sup@v3.5.2</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_sup@v4.0.0">dna_r10.4.1_e8.2_400bps_sup@v4.0.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_sup@v4.1.0">dna_r10.4.1_e8.2_400bps_sup@v4.1.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_sup@v4.2.0">dna_r10.4.1_e8.2_400bps_sup@v4.2.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_sup@v4.3.0">dna_r10.4.1_e8.2_400bps_sup@v4.3.0</option>
+                        <option value="dna_r10.4.1_e8.2_400bps_sup@v5.0.0">dna_r10.4.1_e8.2_400bps_sup@v5.0.0</option>
+                    </optgroup>
+                    <optgroup label="R9 Kits">
+                        <option value="dna_r9.4.1_e8_fast@v3.4">dna_r9.4.1_e8_fast@v3.4</option>
+                        <option value="dna_r9.4.1_e8_hac@v3.3">dna_r9.4.1_e8_hac@v3.3</option>
+                        <option value="dna_r9.4.1_e8_sup@v3.3">dna_r9.4.1_e8_sup@v3.3</option>
+                    </optgroup>
+                    <optgroup label="RNA Kits">
+                        <option value="rna002_70bps_fast@v3">rna002_70bps_fast@v3</option>
+                        <option value="rna004_130bps_fast@v3.0.1">rna004_130bps_fast@v3.0.1</option>
+                        <option value="rna004_130bps_fast@v5.0.0">rna004_130bps_fast@v5.0.0</option>
+                        <option value="rna004_130bps_hac@v3.0.1">rna004_130bps_hac@v3.0.1</option>
+                        <option value="rna004_130bps_hac@v5.0.0">rna004_130bps_hac@v5.0.0</option>
+                        <option value="rna004_130bps_sup@v3.0.1">rna004_130bps_sup@v3.0.1</option>
+                        <option value="rna004_130bps_sup@v5.0.0">rna004_130bps_sup@v5.0.0</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="kit_name" class="form-label">Enter the kit name:</label>
+                <select class="form-control" name="kit_name" required>
+                    <option value="">Please select a kit</option>
+                    <option value="SQK-NBD114-24">SQK-NBD114-24</option>
+                    <option value="SQK-RBK114-24">SQK-RBK114-24</option>
+                </select>
+            </div>
+
+            <h2>VCF Creation Configuration</h2>
+            <div class="mb-3">
+                <label for="vcf_output_file" class="form-label">Output VCF File Name:</label>
+                <input type="text" class="form-control" name="vcf_output_file" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit All Configurations</button>
+        </form>
+        <br>
+        <h3>Configurations:</h3>
+        <ul id="configList" class="list-group mb-4">
+            <!-- Les configurations seront ajoutées ici dynamiquement -->
+        </ul>
+        <button onclick="generateAndShowScript()" class="btn btn-secondary mb-3">Generate Script</button>
+        <!-- Zone de code pour afficher le script Bash -->
+        <pre><code class="language-bash" id="scriptArea"></code></pre>
+        <button onclick="copyToClipboard()">Copier</button>
+    </div>
+
+    <script>
+        document.getElementById('configForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/full_workflow', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const configList = document.getElementById('configList');
+                        const newItem = document.createElement('li');
+                        newItem.className = 'list-group-item';
+                        newItem.textContent = `Base Output Dir: ${formData.get('base_output_dir')}, Input Dir: ${formData.get('input_dir')}, Ref Genome: ${formData.get('ref_genome')}, Q-scores: ${formData.get('qs_scores')}, CUDA Device: ${formData.get('cuda_device')}, Model: ${formData.get('model')}, Kit Name: ${formData.get('kit_name')}, BAM Input Dir: ${formData.get('bam_input_dir')}, BAM Output Dir: ${formData.get('bam_output_dir')}, VCF Output File: ${formData.get('vcf_output_file')}`;
+                        configList.appendChild(newItem);
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        });
+
+        function updateConfigList(configurations) {
+            const configList = document.getElementById('configList');
+            configList.innerHTML = ''; // Clear existing entries
+            configurations.forEach((config, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = `Config ${index + 1}: ${config.base_output_dir} - ${config.input_dir} - ${config.ref_genome} - ${config.qs_scores} - ${config.cuda_device} - ${config.model} - ${config.kit_name} - ${config.bam_input_dir} - ${config.bam_output_dir} - ${config.vcf_output_file}`;
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.className = 'btn btn-danger btn-sm float-right';
+                deleteBtn.onclick = function () { deleteConfiguration(index); };
+                li.appendChild(deleteBtn);
+                configList.appendChild(li);
+            });
+        }
+
+        function deleteConfiguration(index) {
+            fetch('/delete_config_full_workflow', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ index })
+            }).then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        updateConfigList(result.configurations);
+                    } else {
+                        alert('Failed to delete configuration');
+                    }
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/get_configurations_full_workflow')
+                .then(response => response.json())
+                .then(configurations => {
+                    updateConfigList(configurations);
+                })
+                .catch(error => console.error('Error loading configurations:', error));
+        });
+    </script>
+    <script>
+        function generateAndShowScript() {
+            fetch('/generate_full_workflow_script')
+                .then(response => response.json())
+                .then(data => {
+                    const codeBlock = document.getElementById('scriptArea');
+                    codeBlock.textContent = data.script; // Utilisez textContent pour préserver les sauts de ligne
+                    Prism.highlightElement(codeBlock);  // Demandez à Prism de mettre en évidence le nouveau contenu
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+
+</html>
