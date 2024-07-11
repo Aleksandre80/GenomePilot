@@ -149,33 +149,25 @@
 
 
         function copyToClipboard() {
-            const textArea = document.getElementById('scriptArea');
+            const text = document.getElementById('scriptArea').innerText; // Obtient le texte de l'élément `<code>`
 
-            // Vérifie si la copie programmatique est possible dans le contexte actuel
-            if (!navigator.clipboard) {
-                // Fallback: sélectionner le texte et utiliser document.execCommand('copy');
-                textArea.select();
-                document.execCommand('copy');
-                alert('Texte copié avec succès (fallback)!');
-            } else {
-                navigator.permissions.query({ name: "clipboard-write" }).then(result => {
-                    if (result.state === "granted" || result.state === "prompt") {
-                        // Copie le texte dans le presse-papiers
-                        navigator.clipboard.writeText(textArea.innerText).then(() => {
-                            alert('Texte copié avec succès!');
-                        }).catch(err => {
-                            console.error('Erreur lors de la copie:', err);
-                            alert('Erreur lors de la copie');
-                        });
-                    } else {
-                        alert("Permission de copie refusée");
-                    }
-                });
+            // Crée un élément textarea temporaire
+            const textarea = document.createElement('textarea');
+            textarea.textContent = text;
+            textarea.style.position = 'fixed';  // Évite de déplacer la page
+            document.body.appendChild(textarea);
+            textarea.select();  // Sélectionne le texte dans le textarea
+
+            try {
+                document.execCommand('copy');  // Copie le texte dans le presse-papiers
+                alert('Texte copié avec succès!');
+            } catch (err) {
+                console.error('Erreur lors de la copie:', err);
+                alert('Erreur lors de la copie');
             }
+
+            document.body.removeChild(textarea);  // Supprime le textarea temporaire
         }
-
-
-
     </script>
     <script>
         document.getElementById('configForm').onsubmit = async function (e) {
