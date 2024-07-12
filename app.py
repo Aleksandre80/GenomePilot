@@ -238,6 +238,51 @@ def generate_vcf_script():
         script_content += "echo \"Variant calling and file processing completed.\"\n"
     return jsonify(script=script_content)
 
+@app.route('/download_vcf_script', methods=['GET'])
+@role_requis('superadmin')
+def download_vcf_script():
+    script_content = "#!/bin/bash\n\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
+    for config in configurations_vcf:
+        script_content += f"samtools faidx {config['ref_genome']}\n"
+        script_content += f"samtools index {config['bam_file']}\n"
+        script_content += f"bcftools mpileup -Ou -f {config['ref_genome']} {config['bam_file']} | bcftools call -mv -Ob -o {config['output_vcf']}.bcf\n"
+        script_content += "echo \"Variant calling and file processing completed.\"\n"
+    
+    script_path = '/data/Script_Site/tmp/vcf_script.sh'
+    # script_path = 'C:/Users/aleks/OneDrive/Bureau/CHU-WebApp/tmp/vcf_script.sh'
+    with open(script_path, 'w') as file:
+        file.write(script_content)
+        
+    response = make_response(send_file(script_path, as_attachment=True, download_name="vcf_script.sh"))
+    response.headers["Content-Disposition"] = "attachment; filename=vcf_script.sh"
+    return response
+
+@socketio.on('start_vcf_script', namespace='/vcf')
+def handle_vcf_script():
+    print("Received start script event from client.")
+    emit("yoooo", namespace='/vcf')
+    new_workflow = Workflow(name="VCF Creator", status="Running")
+    db.session.add(new_workflow)
+    db.session.commit()
+    script_command = "bash /data/Script_Site/tmp/vcf_script.sh"
+    try:
+        process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, stderr = process.communicate()
+        if stdout:
+            for line in stdout.splitlines():
+                emit('script_output', {'message': line, 'type': 'stdout'}, namespace='/vcf')
+                new_workflow.status = "Completed"
+                emit('script_error', {'status': "Completed"}, namespace='/vcf')
+
+        if stderr:
+            emit('script_output', {'message': stderr, 'type': 'stderr'}, namespace='/vcf')
+            new_workflow.status = "Failed"
+            emit('script_error', {'status': "Failed"}, namespace='/vcf')
+
+        db.session.commit()
+
+    except Exception as e:
+        emit('script_error', {'error': str(e)}, namespace='/vcf')
 
 @app.route('/bam_merger', methods=['GET', 'POST'])
 @role_requis('superadmin') 
@@ -286,6 +331,7 @@ def download_bam_script():
     
     # Utiliser un chemin absolu temporaire approprié
     script_path = '/data/Script_Site/tmp/bam_merge_script.sh'  # Assurez-vous que ce dossier existe et est accessible
+    # script_path = 'C:/Users/aleks/OneDrive/Bureau/CHU-WebApp/tmp/bam_merge_script.sh'
     with open(script_path, 'w') as file:
         file.write(script_content)
     
