@@ -13,7 +13,27 @@
 
     <style>
         body {
-            padding-top: 20px;
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .navbar,
+        .subnav {
+            background-color: #fff;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .subnav {
+            padding: 0.5rem 1rem;
+            margin-top: -1px;
+            /* Aligns the subnav directly under the navbar */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-link.active {
+            border-bottom: 3px solid blue;
+            color: blue;
         }
 
         .container {
@@ -23,6 +43,28 @@
 </head>
 
 <body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">GenomePilot</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="/">Installed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Available Workflows</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/status">Analyses <span id="runningCount" class="badge bg-primary">2</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
     <div class="container">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
@@ -35,29 +77,28 @@
                         </li>
                     </ol>
                 </nav>
-                <h1 class="mb-4 flex-grow-1 text-center">Basecalling + demultiplexing</h1>
+                <h1 class="mb-4 flex-grow-1 text-center">BAM Merger Configuration</h1>
             </div>
         </div>
-        <h1>BAM Merger Configuration</h1>
         <form id="configForm">
             <div class="mb-3">
-                <label for="input_dir" class="form-label">Select the input folder containing BAM files:</label>
-                <input type="text" class="form-control" id="input_dir" name="input_dir" required>
+                <label for="input_dir" class="form-label">Selectionnez votre dossier de BAM à merger:</label>
+                <input type="text" class="form-control" id="input_dir" name="input_dir" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​" required>
             </div>
             <div class="mb-3">
-                <label for="output_dir" class="form-label">Select the output folder for merged BAM file:</label>
-                <input type="text" class="form-control" id="output_dir" name="output_dir" required>
+                <label for="output_dir" class="form-label">Selectionnez votre dossier où vous voulez retrouver votre BAM mergé:</label>
+                <input type="text" class="form-control" id="output_dir" name="output_dir" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​/merge" required>
             </div>
-            <button type="submit" class="btn btn-primary">Add Configuration</button>
+            <button type="submit" class="btn btn-primary">Ajouter la configuration</button>
         </form>
         <ul id="configList" class="list-group mt-3"></ul>
 
-        <button onclick="generateAndShowScript()" class="btn btn-secondary mb-3">Generate Script</button>
+        <button onclick="generateAndShowScript()" class="btn btn-secondary mb-3">Générer le script</button>
         <!-- Zone de code pour afficher le script Bash -->
         <pre><code class="language-bash" id="scriptArea"></code></pre>
-        <button onclick="copyToClipboard()">Copier</button>
-        <button onclick="downloadScript()" class="btn btn-primary mb-3">Download Script</button>
-        <button id="runScriptButton" class="btn btn-primary">Start Script</button>
+        <!-- <button onclick="copyToClipboard()">Copier</button> -->
+        <button onclick="downloadScript()" class="btn btn-primary">Télécharger le script sur la machine</button>
+        <button id="runScriptButton" class="btn btn-success">Lancer le script sur la machine</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -194,6 +235,7 @@
         }
 
     </script> -->
+    <script src="/static/js/analyse_count.js"></script>
 </body>
 
 </html>

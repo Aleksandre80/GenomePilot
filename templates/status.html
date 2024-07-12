@@ -82,7 +82,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Workflows</a>
+            <a class="navbar-brand" href="/">GenomePilot</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -90,13 +90,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="#">Installed</a>
+                        <a class="nav-link" aria-current="page" href="/">Installed</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Available Workflows</a>
+                        <a class="nav-link" href="/">Available Workflows</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/status">Analyses <span class="badge bg-primary">2</span></a>
+                        <a class="nav-link active" href="/status">Analyses <span id="runningCount" class="badge bg-primary">2</span></a>
                     </li>
                 </ul>
             </div>
@@ -109,10 +109,10 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">Workflow</th>
-                            <th scope="col">Created</th>
-                            <th scope="col">Status</th>
+                            <th scope="col" onclick="sortTable(0)">Name</th>
+                            <th scope="col" onclick="sortTable(1)">Workflow</th>
+                            <th scope="col" onclick="sortTable(2)">Created</th>
+                            <th scope="col" onclick="sortTable(3)">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -120,7 +120,7 @@
                         <tr>
                             <td>{{ workflow.name }}</td>
                             <td>{{ workflow.name }}</td>
-                            <td>{{ workflow.launch_date.strftime('%d %b %Y') }}</td>
+                            <td>{{ workflow.launch_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                             <td><span
                                     class="badge bg-{{ 'success' if workflow.status == 'Completed' else 'danger' if workflow.status == 'Failed' else 'secondary' }}">{{
                                     workflow.status }}</span></td>
@@ -130,7 +130,32 @@
                 </table>
             </div>
             <div class="col-md-3">
-                <!-- Sidebar for filters etc. -->
+                <input type="text" id="searchInput" placeholder="Rechercher par nom" class="form-control mb-3">
+                <h4>Filtrer par Statut</h4>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="Pending" id="filterPending" checked>
+                    <label class="form-check-label" for="filterPending">
+                        Pending
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="Running" id="filterRunning" checked>
+                    <label class="form-check-label" for="filterRunning">
+                        Running
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="Completed" id="filterCompleted" checked>
+                    <label class="form-check-label" for="filterCompleted">
+                        Completed
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="Failed" id="filterFailed" checked>
+                    <label class="form-check-label" for="filterFailed">
+                        Failed
+                    </label>
+                </div>
             </div>
         </div>
     </div>
@@ -168,6 +193,9 @@
 
 
     </script>
+    <script src="/static/js/analyse_count.js"></script>
+    <script src="/static/js/analyse_sort.js"></script>
+
 
 </body>
 

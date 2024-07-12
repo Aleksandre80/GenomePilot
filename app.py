@@ -153,6 +153,10 @@ def full_workflow():
         return jsonify(success=True, message="Configuration added successfully.")
     return render_template('full_workflow.html')
 
+@app.route('/running_workflows_count')
+def running_workflows_count():
+    count = Workflow.query.filter_by(status='Running').count()
+    return jsonify({'running_workflows_count': count})
 
 @app.route('/generate_full_workflow_script', methods=['GET'])
 @role_requis('superadmin') 
@@ -277,6 +281,7 @@ def download_vcf_script():
 
     
     script_path = '/data/Script_Site/tmp/vcf_script.sh'
+    # script_path = 'C:/Users/aleks/OneDrive/Bureau/CHU-WebApp/data/Script_Site/tmp/vcf_script.sh'
     with open(script_path, 'w') as file:
         file.write(script_content)
     
