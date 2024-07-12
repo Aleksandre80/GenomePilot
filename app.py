@@ -285,7 +285,7 @@ def download_bam_script():
         script_content += f"echo \"Merging complete for BAM files in {config['input_dir']}\"\n\n"
     
     # Utiliser un chemin absolu temporaire approprié
-    script_path = 'C:/Users/aleks/OneDrive/Bureau/CHU-WebApp/tmp/bam_merge_script.sh'  # Assurez-vous que ce dossier existe et est accessible
+    script_path = '/data/Script_Site/tmp/bam_merge_script.sh'  # Assurez-vous que ce dossier existe et est accessible
     with open(script_path, 'w') as file:
         file.write(script_content)
     
@@ -302,7 +302,7 @@ def handle_script():
     new_workflow = Workflow(name="BAM Merge", status="Running")
     db.session.add(new_workflow)
     db.session.commit()
-    script_command = "bash C:/Users/aleks/OneDrive/Bureau/CHU-WebApp/tmp/bam_merge_script.sh"
+    script_command = "bash /data/Script_Site/tmp/bam_merge_script.sh"
     try:
         process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stdout, stderr = process.communicate()
