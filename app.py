@@ -1,10 +1,14 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, send_file, make_response, copy_current_request_context
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from functools import wraps
 from flask_migrate import Migrate
+import subprocess
+from flask_socketio import SocketIO, emit
+import threading
+import shlex
 
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'
@@ -12,6 +16,7 @@ app.config['UPLOAD_FOLDER'] = 'path_to_save'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///configurations.db'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 configurations_basecalling = []
 configurations_merge = []
@@ -54,7 +59,14 @@ class FullWorkflowConfiguration(db.Model):
     vcf_output_file = db.Column(db.String(120), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Workflow(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    launch_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    status = db.Column(db.String(20), nullable=False, default='Pending')
 
+    def __repr__(self):
+        return f"Workflow('{self.name}', '{self.launch_date}', '{self.status}')"
 
 def role_requis(*roles_requis):
     def wrapper(fn):
@@ -70,7 +82,13 @@ def role_requis(*roles_requis):
 @app.route('/', methods=['GET', 'POST'])
 @role_requis('superadmin') 
 def accueil():
-    return render_template('home.html')
+    return render_template('workflow.html')
+
+@app.route('/status', methods=['GET', 'POST'])
+@role_requis('superadmin')
+def status():
+    workflows = Workflow.query.order_by(Workflow.launch_date.desc()).all()
+    return render_template('status.html', workflows=workflows)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -180,12 +198,6 @@ def generate_full_workflow_script():
     script_content += "echo \"All processes are complete.\"\n"
     return jsonify(script=script_content)
 
-
-
-
-
-
-
 @app.route('/vcf_creator', methods=['GET', 'POST'])
 @role_requis('superadmin') 
 def vcf_creator():
@@ -262,6 +274,55 @@ def generate_bam_script():
         script_content += f"samtools merge \"{config['output_dir']}/merged.bam\" \"{config['input_dir']}\"/*.bam\n"
         script_content += f"echo \"Merging complete for BAM files in {config['input_dir']}\"\n\n"
     return jsonify(script=script_content)
+
+@app.route('/download_bam_script', methods=['GET'])
+@role_requis('superadmin')
+def download_bam_script():
+    script_content = "#!/bin/bash\n\n"
+    for config in configurations_merge:
+        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"samtools merge \"{config['output_dir']}/merged.bam\" \"{config['input_dir']}\"/*.bam\n"
+        script_content += f"echo \"Merging complete for BAM files in {config['input_dir']}\"\n\n"
+    
+    # Utiliser un chemin absolu temporaire approprié
+    script_path = 'C:/Users/aleks/OneDrive/Bureau/CHU-WebApp/tmp/bam_merge_script.sh'  # Assurez-vous que ce dossier existe et est accessible
+    with open(script_path, 'w') as file:
+        file.write(script_content)
+    
+    # Création de la réponse
+    response = make_response(send_file(script_path, as_attachment=True, download_name="bam_merge_script.sh"))
+    response.headers["Content-Disposition"] = "attachment; filename=bam_merge_script.sh"
+    return response
+
+    
+@socketio.on('start_script', namespace='/test')
+def handle_script():
+    print("Received start script event from client.")
+    emit("yoooo", namespace='/test')
+    new_workflow = Workflow(name="BAM Merge", status="Running")
+    db.session.add(new_workflow)
+    db.session.commit()
+    script_command = "bash C:/Users/aleks/OneDrive/Bureau/CHU-WebApp/tmp/bam_merge_script.sh"
+    try:
+        process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, stderr = process.communicate()
+        if stdout:
+            for line in stdout.splitlines():
+                emit('script_output', {'message': line, 'type': 'stdout'}, namespace='/test')
+                new_workflow.status = "Completed"
+                emit('script_error', {'status': "Completed"}, namespace='/test')
+
+        if stderr:
+            emit('script_output', {'message': stderr, 'type': 'stderr'}, namespace='/test')
+            new_workflow.status = "Failed"
+            emit('script_error', {'status': "Failed"}, namespace='/test')
+
+        db.session.commit()
+
+    except Exception as e:
+        emit('script_error', {'error': str(e)}, namespace='/test')
+
+
 
 
 @app.route('/basecalling', methods=['GET', 'POST'])
@@ -461,4 +522,4 @@ def history_full_workflow():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True, host='0.0.0.0')
+    socketio.run(app, debug=True)

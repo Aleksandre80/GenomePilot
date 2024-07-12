@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Animation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        .status-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            padding: 0.5em 0.75em;
+            background-color: #007bff;
+            color: white;
+            border-radius: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <tr>
+            <td class="status-cell">
+                <span class="badge bg-secondary">Running</span>
+                <div id="p5-animation"></div>
+            </td>
+        </tr>
+    </table>
+
+    <script>
+        let amplitude = 10; // Réduction de la hauteur de l'onde
+        let xspacing = 4; // Réduction de l'écart entre les positions
+        let w; // Largeur de l'onde entière
+        let dx; // Valeur pour l'incrément de x
+        let angle = 0; // Angle de départ
+        let period = 100; // Période plus courte pour une onde plus petite
+        let yvalues; // Tableau pour stocker les valeurs y
+
+        function setup() {
+            let canvas = createCanvas(75, 40); // Canvas plus petit
+            canvas.parent('p5-animation');
+            w = width + 16; // Adaptation de la largeur de l'onde à la largeur du canvas
+            dx = (TWO_PI / period) * xspacing;
+            yvalues = new Array(floor(w / xspacing));
+        }
+
+        function draw() {
+            clear();
+            calculateWave();
+            renderWave();
+        }
+
+        function calculateWave() {
+            angle += 0.05; // Accélération de l'animation pour un espace réduit
+            let x = angle;
+            for (let i = 0; i < yvalues.length; i++) {
+                yvalues[i] = sin(x) * amplitude;
+                x += dx;
+            }
+        }
+
+        function renderWave() {
+            noStroke();
+            fill('#17f'); // Couleur de l'onde
+            for (let x = 0; x < yvalues.length; x++) {
+                ellipse(x * xspacing, height / 2 + yvalues[x], 4, 4);
+            }
+        }
+    </script>
+</body>
+</html>

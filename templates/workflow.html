@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPI2ME Labs Inspired Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .navbar,
+        .subnav {
+            background-color: #fff;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .subnav {
+            padding: 0.5rem 1rem;
+            margin-top: -1px;
+            /* Aligns the subnav directly under the navbar */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-link.active {
+            border-bottom: 3px solid blue;
+            color: blue;
+        }
+
+        .container {
+            margin-top: 20px;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            color: #0056b3;
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Workflows</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Installed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Available Workflows</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/status">Analyses <span class="badge bg-primary">2</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="mb-4">Workflows</h1>
+                <a href="/basecalling" class="card-link" style="text-decoration: none; color: inherit;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Basecalling + demultiplexing</h5>
+                            <p class="card-text">Ce workflow prend en charge le déchiffrement des lectures brutes issues des
+                                appareils de séquençage à nanopores et leur classification en fonction des barcodes
+                                spécifiques à chaque échantillon. Il est essentiel pour distinguer les échantillons traités
+                                dans une même expérience et préparer les données pour des analyses ultérieures.</p>
+                        </div>
+                    </div>
+                </a>
+                <a href="/bam_merger" class="card-link" style="text-decoration: none; color: inherit;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Merge de BAM</h5>
+                            <p class="card-text">Ce workflow permet de fusionner plusieurs fichiers BAM en un seul. Cette
+                                étape est cruciale pour consolider les résultats de séquençage provenant de plusieurs
+                                réplicats ou de différents fragments d'un même échantillon, facilitant ainsi l'analyse
+                                globale des données.</p>
+                        </div>
+                    </div>
+                </a>
+                <a href="/vcf_creator" class="card-link" style="text-decoration: none; color: inherit;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Création de VCF</h5>
+                            <p class="card-text">
+                                Ce workflow transforme les fichiers BAM en fichiers VCF, qui contiennent des
+                                informations sur les variations génétiques par rapport à une référence. Cela inclut
+                                l'identification des SNPs, des insertions, des délétions et d'autres variantes,
+                                essentiel pour les études de génomique comparative et les diagnostics.
+                            </p>
+                        </div>
+                    </div>
+                </a>
+                <a href="/full_workflow" class="card-link" style="text-decoration: none; color: inherit;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Du Basecalling au VCF</h5>
+                            <p class="card-text">Ce workflow intégré couvre tout le processus, depuis le basecalling jusqu'à
+                                la création de fichiers VCF. Il combine les étapes de basecalling, de démultiplexage, de
+                                fusion de fichiers BAM et de création de VCF pour fournir un chemin complet du séquençage à
+                                l'analyse des variantes. Idéal pour les projets nécessitant une analyse complète à partir de
+                                données brutes.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

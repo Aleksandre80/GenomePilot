@@ -17,18 +17,19 @@
         <h1 class="mt-4">Full Workflow: Basecalling, Demultiplexing, BAM Merge, VCF Creation</h1>
         <form method="POST" enctype="multipart/form-data" id="configForm">
             <div class="mb-3">
+                <label for="input_dir" class="form-label">Select the folder for input:</label>
+                <input type="text" class="form-control" name="input_dir"
+                    placeholder="/data/validation_de_meth_TTR_FLG_2/no_sample/20240611_1220_X1_FLG114_2dac5e43/pod5​"
+                    required>
+            </div>
+            
+            <div class="mb-3">
                 <label for="base_output_dir" class="form-label">Set the base output directory:</label>
                 <input type="text" class="form-control" name="base_output_dir"
                     placeholder="/data/validation_de_meth_TTR_FLG_2/no_sample/20240611_1220_X1_FLG114_2dac5e43/Basecalling"
                     required>
             </div>
 
-            <div class="mb-3">
-                <label for="input_dir" class="form-label">Select the folder for input:</label>
-                <input type="text" class="form-control" name="input_dir"
-                    placeholder="/data/validation_de_meth_TTR_FLG_2/no_sample/20240611_1220_X1_FLG114_2dac5e43/pod5​"
-                    required>
-            </div>
 
             <div class="mb-3">
                 <label for="ref_genome" class="form-label">Select the genome file (e.g., .mmi):</label>
