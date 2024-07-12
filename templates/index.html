@@ -10,8 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-okaidia.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-bash.min.js"></script>
-
-
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -277,6 +276,40 @@
                 })
                 .catch(error => console.error('Error loading configurations:', error));
         });
+    </script>
+    <script>
+        function downloadScript() {
+            window.location.href = '/download_basecalling_script';
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var socket = io.connect('http://172.16.102.219:5000/basecalling');
+            console.log('Socket.IO status:', typeof io);
+
+            var runButton = document.getElementById('runScriptButton');
+            if (runButton) {
+                runButton.addEventListener('click', function () {
+                    socket.emit('start_script_basecalling');
+                    console.log('Script start requested.');  // Ajoutez ceci pour débugger
+                });
+            } else {
+                console.error('Run script button not found!');  // Ajoutez ceci pour débugger
+            }
+
+            socket.on('script_output', function (data) {
+                if (data.type === 'stderr') {
+                    console.error(data.message);
+                } else {
+                    console.log(data.message);
+                }
+            });
+
+            socket.on('script_error', function (data) {
+                console.error('Script error:', data.status);  // Affichez le statut de l'erreur
+            });
+        });
+
     </script>
     <script src="/static/js/analyse_count.js"></script>
 </body>

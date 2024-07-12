@@ -215,30 +215,6 @@
         });
 
     </script>
-    <!-- <script>
-        function downloadScript() {
-            var downloadButton = document.getElementById('start-script');
-            fetch('/download_vcf_script')
-                .then(response => {
-                    if (response.ok) {
-                        return response.blob();
-                    }
-                    throw new Error('Network response was not ok.');
-                })
-                .then(blob => {
-                    var url = window.URL.createObjectURL(blob);
-                    var a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = 'vcf_script.sh';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                })
-                .catch(error => console.error('Download failed:', error));
-        }
-
-    </script> -->
     <script src="/static/js/analyse_count.js"></script>
 </body>
 

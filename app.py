@@ -164,7 +164,7 @@ def generate_full_workflow_script():
     if not configurations_full_workflow:  # Vérifie si la liste est vide
         return jsonify(success=False, message="No configurations available")
 
-    script_content = "#!/bin/bash\n\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
+    script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     
     for config in configurations_full_workflow:
         # Définir les chemins des outils et des dossiers pour chaque qscore
@@ -438,7 +438,7 @@ def basecalling():
 @app.route('/generate_script', methods=['GET'])
 @role_requis('superadmin') 
 def generate_script():
-    script_content = "#!/bin/bash\n\nsource ~/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
+    script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_basecalling:
         qs_scores_list = config['qs_scores'].split()
         for qscore in qs_scores_list:
@@ -466,6 +466,73 @@ echo "Processing complete for {config['input_dir']} with Q-score {qscore}"
     script_content += "echo \"All processes are complete.\"\n"
     return jsonify(script=script_content)
 
+@app.route('/download_basecalling_script', methods=['GET'])
+@role_requis('superadmin')
+def download_basecalling_script():
+    script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
+    for config in configurations_basecalling:
+        qs_scores_list = config['qs_scores'].split()
+        for qscore in qs_scores_list:
+            output_dir = f"${{BASE_OUTPUT_DIR}}/demultiplexed_q{qscore}"
+            script_content += f"BASE_OUTPUT_DIR=\"{config['base_output_dir']}\"\n"
+            script_content += "mkdir -p \"${BASE_OUTPUT_DIR}\"\n"
+            script_content += f"""
+DORADO_BIN="/home/grid/dorado-0.7.2-linux-x64/bin/dorado"
+MODEL_PATH="/home/grid/dorado-0.7.2-linux-x64/bin/{config['model']}"
+REF_GENOME="{config['ref_genome']}"
+INPUT_DIR="{config['input_dir']}"
+OUTPUT_DIR="{output_dir}"
+mkdir -p "${{OUTPUT_DIR}}"
+${{DORADO_BIN}} basecaller -x "{config['cuda_device']}" --min-qscore "{qscore}" --no-trim --emit-fastq ${{MODEL_PATH}} ${{INPUT_DIR}} | \\
+${{DORADO_BIN}} demux --kit-name "{config['kit_name']}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
+echo "Processing complete for {config['input_dir']} with Q-score {qscore}"
+"""
+            script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
+            script_content += f"    bam_file=\"${{fastq_file%.fastq}}.bam\"\n"
+            script_content += f"    echo \"Aligning ${{fastq_file}} to reference genome...\"\n"
+            script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"$bam_file\"\n"
+            script_content += f"    samtools index \"$bam_file\"\n"
+            script_content += f"    echo \"Alignment and BAM conversion completed for ${{bam_file}}\"\n"
+            script_content += "done\n"
+    script_content += "echo \"All processes are complete.\"\n"
+    # Utiliser un chemin absolu temporaire approprié
+    # script_path = 'C:/Users/aleks/OneDrive/Bureau/CHU-WebApp/data/Script_Site/tmp/basecalling_script.sh'  # Assurez-vous que ce dossier existe et est accessible
+    script_path = '/data/Script_Site/tmp/basecalling_script.sh'
+    with open(script_path, 'w') as file:
+        file.write(script_content)
+    
+    # Création de la réponse
+    response = make_response(send_file(script_path, as_attachment=True, download_name="basecalling_script.sh"))
+    response.headers["Content-Disposition"] = "attachment; filename=basecalling_script.sh"
+    return response
+
+@socketio.on('start_script_basecalling', namespace='/basecalling')
+def handle_basecalling_script():
+    print("Received start script event from client.")
+    emit("yoooo", namespace='/basecalling')
+    new_workflow = Workflow(name="Basecalling + demultiplexage", status="Running")
+    db.session.add(new_workflow)
+    db.session.commit()
+    script_command = "bash /data/Script_Site/tmp/basecalling_script.sh"
+    try:
+        process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, stderr = process.communicate()
+        if stdout:
+            for line in stdout.splitlines():
+                emit('script_output', {'message': line, 'type': 'stdout'}, namespace='/basecalling')
+                new_workflow.status = "Completed"
+                emit('script_error', {'status': "Completed"}, namespace='/basecalling')
+
+        if stderr:
+            emit('script_output', {'message': stderr, 'type': 'stderr'}, namespace='/basecalling')
+            new_workflow.status = "Failed"
+            emit('script_error', {'status': "Failed"}, namespace='/basecalling')
+
+        db.session.commit()
+
+    except Exception as e:
+        emit('script_error', {'error': str(e)}, namespace='/basecalling')
+    
 @app.route('/add_config', methods=['POST'])
 @role_requis('superadmin') 
 def add_configuration():
