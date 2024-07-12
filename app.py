@@ -255,13 +255,16 @@ def generate_vcf_script():
 def download_vcf_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_vcf:
-        # Création d'un dossier VCF si non existant
-        output_directory = os.path.dirname(config['output_vcf'])
-        vcf_directory = f"{output_directory}/vcf"
+        # Création d'un dossier VCF dans le même répertoire que le fichier BAM
+        bam_directory = os.path.dirname(config['bam_file'])
+        vcf_directory = os.path.join(bam_directory, "vcf")
         script_content += f"mkdir -p {vcf_directory}\n"  # S'assure que le dossier vcf existe
-        
-        output_vcf_path = f"{vcf_directory}/{os.path.basename(config['output_vcf'])}"  # Chemin modifié pour placer les fichiers dans le dossier vcf
-        
+
+        # Chemin modifié pour placer les fichiers VCF dans le dossier vcf
+        base_vcf_filename = os.path.basename(config['output_vcf'])
+        output_vcf_path = os.path.join(vcf_directory, base_vcf_filename)
+
+        # Processus de création des fichiers VCF
         script_content += f"samtools faidx {config['ref_genome']}\n"
         script_content += f"samtools index {config['bam_file']}\n"
         script_content += f"bcftools mpileup -Ou -f {config['ref_genome']} {config['bam_file']} | bcftools call -mv -Ob -o {output_vcf_path}.bcf\n"
@@ -271,6 +274,7 @@ def download_vcf_script():
         script_content += f"gunzip -c {output_vcf_path}.vcf.gz > {output_vcf_path}.vcf\n"
         script_content += f"rm -f {output_vcf_path}.bcf {output_vcf_path}.vcf.gz {output_vcf_path}.bcf.csi {output_vcf_path}.vcf.gz.tbi\n"
         script_content += "echo \"Variant calling and file processing completed.\"\n"
+
     
     script_path = '/data/Script_Site/tmp/vcf_script.sh'
     with open(script_path, 'w') as file:
