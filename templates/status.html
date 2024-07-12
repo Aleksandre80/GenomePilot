@@ -141,7 +141,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var socket = io.connect('http://localhost:5000/test');
+            var socket = io.connect('http://172.16.102.219:5000/test');
             console.log('Tentative de connexion Socket.IO');
 
             socket.on('connect', function () {

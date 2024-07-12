@@ -142,7 +142,7 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var socket = io.connect('http://localhost:5000/test');
+            var socket = io.connect('http://172.16.102.219:5000/test');
             console.log('Socket.IO status:', typeof io);
 
             var runButton = document.getElementById('runScriptButton');
