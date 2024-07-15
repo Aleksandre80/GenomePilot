@@ -3,13 +3,20 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Utilisation de Disques Multiples</title>
+    <title>Utilisation des Disques</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
         canvas {
-            width: 400px !important;
-            height: 400px !important;
-            max-width: 100% !important;
+            margin: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -17,55 +24,52 @@
 <body>
     <div id="charts"></div>
     <script>
-        async function loadDiskData() {
-            try {
-                const response = await fetch('/diskinfo');
-                const data = await response.json();
-                const container = document.getElementById('charts');
-                data.forEach((disk, index) => {
-                    const canvas = document.createElement('canvas');
-                    canvas.id = 'diskChart' + index;
-                    canvas.style.width = '400px';
-                    canvas.style.height = '400px';
-                    container.appendChild(canvas);
+        fetch('/diskinfo')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('charts');
+            data.forEach((disk, index) => {
+                const canvas = document.createElement('canvas');
+                canvas.id = 'diskChart' + index;
+                container.appendChild(canvas);
 
-                    var ctx = canvas.getContext('2d');
-                    new Chart(ctx, {
-                        type: 'pie',
-                        data: {
-                            labels: ['Utilisé (Go)', 'Libre (Go)'],
-                            datasets: [{
-                                label: `${disk.device} Utilisation du Disque (Go)`,
-                                data: [disk.used, disk.free],
-                                backgroundColor: [
-                                    'rgba(255, 99, 132, 0.2)',
-                                    'rgba(54, 162, 235, 0.2)'
-                                ],
-                                borderColor: [
-                                    'rgba(255, 99, 132, 1)',
-                                    'rgba(54, 162, 235, 1)'
-                                ],
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: false,
-                            maintainAspectRatio: false,
-                            title: {
-                                display: true,
-                                text: 'Disque: ' + disk.device
-                            }
+                const ctx = canvas.getContext('2d');
+                const freePercentage = (disk.free / disk.total) * 100;
+                let backgroundColor;
+                if (freePercentage > 50) {
+                    backgroundColor = ['rgba(75, 192, 192, 0.7)', 'rgba(255, 99, 132, 0.7)']; // Vert et rouge
+                } else if (freePercentage > 25) {
+                    backgroundColor = ['rgba(255, 206, 86, 0.7)', 'rgba(255, 99, 132, 0.7)']; // Jaune et rouge
+                } else {
+                    backgroundColor = ['rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)']; // Rouge et bleu
+                }
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Libre (Go)', 'Utilisé (Go)'],
+                        datasets: [{
+                            label: `${disk.device} Utilisation du Disque (Go)`,
+                            data: [disk.free, disk.used],
+                            backgroundColor: backgroundColor,
+                            borderColor: [
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        title: {
+                            display: true,
+                            text: 'Disque: ' + disk.device
                         }
-                    });
+                    }
                 });
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        loadDiskData();
+            });
+        })
+        .catch(error => console.error('Error:', error));
     </script>
-
 </body>
 
 </html>
