@@ -9,6 +9,7 @@ import subprocess
 from flask_socketio import SocketIO, emit
 import threading
 import shlex
+import re
 
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'
@@ -509,29 +510,45 @@ echo "Processing complete for {config['input_dir']} with Q-score {qscore}"
 @socketio.on('start_script_basecalling', namespace='/basecalling')
 def handle_basecalling_script():
     print("Received start script event from client.")
-    emit("yoooo", namespace='/basecalling')
+
     new_workflow = Workflow(name="Basecalling + demultiplexage", status="Running")
     db.session.add(new_workflow)
     db.session.commit()
+
     script_command = "bash /data/Script_Site/tmp/basecalling_script.sh"
+    process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
+    
     try:
-        process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate()
-        if stdout:
-            for line in stdout.splitlines():
+        # Lecture en continu de stdout
+        while True:
+            line = process.stdout.readline()
+            if line:
                 emit('script_output', {'message': line, 'type': 'stdout'}, namespace='/basecalling')
-                new_workflow.status = "Completed"
-                emit('script_error', {'status': "Completed"}, namespace='/basecalling')
+            else:
+                break
 
+        # Vérifier si des erreurs ont été écrites dans stderr
+        stderr = process.stderr.read()
         if stderr:
-            emit('script_output', {'message': stderr, 'type': 'stderr'}, namespace='/basecalling')
-            new_workflow.status = "Failed"
-            emit('script_error', {'status': "Failed"}, namespace='/basecalling')
+            for line in stderr.splitlines():
+                emit('script_output', {'message': line, 'type': 'stderr'}, namespace='/basecalling')
 
-        db.session.commit()
+        # Vérification du code de retour du processus
+        process.wait()
+        if process.returncode == 0:
+            new_workflow.status = "Completed"
+            emit('script_status', {'status': "Completed"}, namespace='/basecalling')
+        else:
+            new_workflow.status = "Failed"
+            emit('script_status', {'status': "Failed"}, namespace='/basecalling')
 
     except Exception as e:
         emit('script_error', {'error': str(e)}, namespace='/basecalling')
+        new_workflow.status = "Failed"
+
+    finally:
+        db.session.commit()
+
     
 @app.route('/add_config', methods=['POST'])
 @role_requis('superadmin') 
