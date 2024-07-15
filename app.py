@@ -9,7 +9,7 @@ import subprocess
 from flask_socketio import SocketIO, emit
 import threading
 import shlex
-import re
+import psutil
 
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'
@@ -681,6 +681,26 @@ def history_full_workflow():
     configurations = FullWorkflowConfiguration.query.all()
     configurations.sort(key=lambda x: x.date_created, reverse=True)
     return render_template('history-full_workflow.html', configurations=configurations)
+
+@app.route('/diskinfo')
+def disk_info():
+    partitions = psutil.disk_partitions()
+    disk_data = []
+    for partition in partitions:
+        usage = psutil.disk_usage(partition.mountpoint)
+        disk_info = {
+            'device': partition.device,
+            'mountpoint': partition.mountpoint,
+            'used': usage.used / (1024**3),  # Convertit les bytes en gigaoctets
+            'free': usage.free / (1024**3),  # Convertit les bytes en gigaoctets
+            'total': usage.total / (1024**3)  # Convertit les bytes en gigaoctets
+        }
+        disk_data.append(disk_info)
+    return jsonify(disk_data)
+
+@app.route('/disk')
+def disk():
+    return render_template('disk.html')
 
 if __name__ == '__main__':
     with app.app_context():
