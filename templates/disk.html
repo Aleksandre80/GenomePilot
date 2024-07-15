@@ -28,7 +28,8 @@
         .then(response => response.json())
         .then(data => {
             const container = document.getElementById('charts');
-            data.forEach((disk, index) => {
+            const filteredData = data.filter(disk => disk.total >= 20);
+            filteredData.forEach((disk, index) => {
                 const canvas = document.createElement('canvas');
                 canvas.id = 'diskChart' + index;
                 container.appendChild(canvas);
