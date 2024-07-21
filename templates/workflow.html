@@ -126,6 +126,46 @@
                         </div>
                     </div>
                 </a>
+                <a href="/anomalie_structure" class="card-link" style="text-decoration: none; color: inherit;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Anomalie de Structure</h5>
+                            <p class="card-text">Ce workflow permet de détecter les anomalies de structure depuis un BAM trié et ressort le résultat
+                                dans un fichier VCF.
+                            </p>
+                        </div>
+                    </div>
+                </a>
+                <a href="/moyenne-reads" class="card-link" style="text-decoration: none; color: inherit;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Calculer la moyenne des reads des cibles</h5>
+                            <p class="card-text">Ce workflow permet de calculer la moyenne des reads des cibles depuis un fichier BAM trié et indéxé. Il vous faudra
+                                un fichier BED pour spécifier les régions cibles.
+                            </p>
+                        </div>
+                    </div>
+                </a>
+                <a href="/phred-quality" class="card-link" style="text-decoration: none; color: inherit;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Filtrage des reads selon le phred quality d'une position génomique</h5>
+                            <p class="card-text">Ce workflow permet de filtrer les reads selon le phred quality d'une position génomique depuis un fichier BAM. Cela est utilise 
+                                lorsque vous avez beaucoup de reads sur Alamut et que beaucoup d'entre eux ont un phred quality faible.
+                            </p>
+                        </div>
+                    </div>
+                </a>
+                <a href="/methylation" class="card-link" style="text-decoration: none; color: inherit;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Détecter la méthylation</h5>
+                            <p class="card-text">Ce workflow permet de détecter la méthylation, il commence par faire le basecalling avec un modèle dédié à la méthylation, puis il aligne les reads
+                                sur un génome de référence et enfin il sort un BAM.
+                            </p>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
     </div>

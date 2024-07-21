@@ -23,6 +23,7 @@ configurations_basecalling = []
 configurations_merge = []
 configurations_vcf = []
 configurations_full_workflow = []
+configurations_anomalie_structure = []
 
 class ConfigurationBasecalling(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -58,6 +59,12 @@ class FullWorkflowConfiguration(db.Model):
     model = db.Column(db.String(120), nullable=False)
     kit_name = db.Column(db.String(120), nullable=False)
     vcf_output_file = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class ConfigurationAnomalieStructure(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_dir = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Workflow(db.Model):
@@ -317,6 +324,91 @@ def handle_vcf_script():
 
     except Exception as e:
         emit('script_error', {'error': str(e)}, namespace='/vcf')
+        
+        
+
+@app.route('/anomalie_structure', methods=['GET', 'POST'])
+@role_requis('superadmin')
+def anomalie_structure():
+    if request.method == 'POST':
+        input_dir = request.form['input_dir']
+        output_dir = request.form['output_dir']
+        
+        if not all([input_dir, output_dir]):
+            return jsonify(success=False, message="Please specify both input and output directories.")
+        
+        configurations_anomalie_structure.append({
+            "input_dir": input_dir,
+            "output_dir": output_dir
+        })
+        
+        configurations_anomalie_structure_db = ConfigurationAnomalieStructure(
+            input_dir=input_dir,
+            output_dir=output_dir
+        )
+        db.session.add(configurations_anomalie_structure_db)
+        db.session.commit()
+        
+        return jsonify(success=True, message="Configuration added successfully.")
+    return render_template('anomalie-structure.html')
+
+@app.route('/generate_anomalie_structure_script', methods=['GET'])
+@role_requis('superadmin')
+def generate_anomalie_structure_script():
+    script_content = "#!/bin/bash\n\n"
+    for config in configurations_anomalie_structure:
+        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"echo \"Starting Anomalie Structure analysis...\"\n"
+        script_content += f"sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}\"\n"
+        script_content += f"echo \"Anomalie Structure analysis completed.\"\n"
+    return jsonify(script=script_content)
+
+@app.route('/download_anomalie_structure_script', methods=['GET'])
+@role_requis('superadmin')
+def download_anomalie_structure_script():
+    script_content = "#!/bin/bash\n\n"
+    for config in configurations_anomalie_structure:
+        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"echo \"Starting Anomalie Structure analysis...\"\n"
+        script_content += f"sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}\"\n"
+        script_content += f"echo \"Anomalie Structure analysis completed.\"\n"
+        
+    script_path = '/data/Script_Site/tmp/anomalie_structure_script.sh'
+    with open(script_path, 'w') as file:
+        file.write(script_content)
+        
+    response = make_response(send_file(script_path, as_attachment=True, download_name="anomalie_structure_script.sh"))
+    response.headers["Content-Disposition"] = "attachment; filename=anomalie_structure_script.sh"
+    return response
+        
+
+@socketio.on('start_anomalie_structure_script', namespace='/anomalie_structure')
+def handle_anomalie_structure_script():
+    print("Received start script event from client.")
+    emit("yoooo", namespace='/anomalie_structure')
+    new_workflow = Workflow(name="Anomalie Structure", status="Running")
+    db.session.add(new_workflow)
+    db.session.commit()
+    script_command = "bash /data/Script_Site/tmp/anomalie_structure_script.sh"
+    try:
+        process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, stderr = process.communicate()
+        if stderr:
+            emit('script_output', {'message': stderr, 'type': 'stderr'}, namespace='/anomalie_structure')
+            new_workflow.status = "Failed"
+            emit('script_error', {'status': "Failed"}, namespace='/anomalie_structure')
+        if stdout:
+            for line in stdout.splitlines():
+                emit('script_output', {'message': line, 'type': 'stdout'}, namespace='/anomalie_structure')
+                new_workflow.status = "Completed"
+                emit('script_error', {'status': "Completed"}, namespace='/anomalie_structure')
+
+        db.session.commit()
+
+    except Exception as e:
+        emit('script_error', {'error': str(e)}, namespace='/anomalie_structure')
+        new_workflow.status = "Failed"
+
 
 @app.route('/bam_merger', methods=['GET', 'POST'])
 @role_requis('superadmin') 
@@ -613,6 +705,11 @@ def get_configurations_vcf():
 def get_configurations_full_workflow():
     return jsonify(configurations_full_workflow)
 
+@app.route('/get_configurations_anomalie_structure', methods=['GET'])
+@role_requis('superadmin')
+def get_configurations_anomalie_structure():
+    return jsonify(configurations_anomalie_structure)
+
 
 @app.route('/delete_config', methods=['POST'])
 @role_requis('superadmin') 
@@ -651,6 +748,16 @@ def delete_configuration_full_workflow():
     try:
         configurations_full_workflow.pop(index)
         return jsonify(success=True, configurations=configurations_full_workflow)
+    except IndexError:
+        return jsonify(success=False, message="Configuration not found")
+    
+@app.route('/delete_config_anomalie_structure', methods=['POST'])
+@role_requis('superadmin')
+def delete_configuration_anomalie_structure():
+    index = request.json['index']
+    try:
+        configurations_anomalie_structure.pop(index)
+        return jsonify(success=True, configurations=configurations_anomalie_structure)
     except IndexError:
         return jsonify(success=False, message="Configuration not found")
     
