@@ -184,7 +184,7 @@
         <pre><code class="language-bash" id="scriptArea"></code></pre>
         <!-- <button onclick="copyToClipboard()">Copier</button> -->
         <button onclick="downloadScript()" class="btn btn-primary">Télécharger le script sur la machine</button>
-        <button id="runScriptButton" class="btn btn-success">Lancer le script sur la machine</button>
+        <button onclick="startScript()" class="btn btn-success">Lancer le script sur la machine</button>
     </div>
     <script>
         function generateAndShowScript() {
@@ -192,7 +192,7 @@
                 .then(response => response.json())
                 .then(data => {
                     const codeBlock = document.getElementById('scriptArea');
-                    codeBlock.textContent = data.script; // Utilisez textContent pour préserver les sauts de ligne
+                    codeBlock.textContent = JSON.parse(data.script); // Utilisez JSON.parse pour décoder le contenu échappé
                     Prism.highlightElement(codeBlock);  // Demandez à Prism de mettre en évidence le nouveau contenu
                 })
                 .catch(error => console.error('Error:', error));
@@ -224,7 +224,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             fetchConfigurations();
         });
-    
+
         document.getElementById('configForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(this);
@@ -242,7 +242,7 @@
                 })
                 .catch(error => console.error('Error adding configuration:', error));
         });
-    
+
         function updateConfigList(configurations) {
             const configList = document.getElementById('configList');
             configList.innerHTML = ''; // Clear existing entries
@@ -258,7 +258,7 @@
                 configList.appendChild(li);
             });
         }
-    
+
         function deleteConfiguration(index) {
             fetch('/delete_config_basecalling', {
                 method: 'POST',
@@ -274,7 +274,7 @@
                 })
                 .catch(error => console.error('Error deleting configuration:', error));
         }
-    
+
         function fetchConfigurations() {
             fetch('/get_configurations_basecalling')
                 .then(response => response.json())
@@ -283,43 +283,26 @@
                 })
                 .catch(error => console.error('Error loading configurations:', error));
         }
-    </script>
-    
 
+        function startScript() {
+            fetch('/generate_script', {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Script started:', data);
+                    alert('Script started');
+                })
+                .catch(error => console.error('Error starting script:', error));
+        }
+
+    </script>
     <script>
         function downloadScript() {
             window.location.href = '/download_basecalling_script';
         }
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var socket = io.connect('http://172.16.102.219:5000/basecalling');
-            console.log('Socket.IO status:', typeof io);
 
-            var runButton = document.getElementById('runScriptButton');
-            if (runButton) {
-                runButton.addEventListener('click', function () {
-                    socket.emit('start_script_basecalling');
-                    console.log('Script start requested.');  // Ajoutez ceci pour débugger
-                });
-            } else {
-                console.error('Run script button not found!');  // Ajoutez ceci pour débugger
-            }
-
-            socket.on('script_output', function (data) {
-                if (data.type === 'stderr') {
-                    console.error(data.message);
-                } else {
-                    console.log(data.message);
-                }
-            });
-
-            socket.on('script_error', function (data) {
-                console.error('Script error:', data.status);  // Affichez le statut de l'erreur
-            });
-        });
-
-    </script>
     <script src="/static/js/analyse_count.js"></script>
 </body>
 

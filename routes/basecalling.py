@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for, make_response, send_file
 from extensions import db
-from models import ConfigurationBasecalling
+from models import ConfigurationBasecalling, Workflow
 from utils import role_requis
+import json
 
 basecalling_bp = Blueprint('basecalling_bp', __name__)
 
@@ -55,6 +56,11 @@ def basecalling():
 def generate_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_basecalling:
+        log_file = f"{config['base_output_dir']}/basecalling_log.txt"
+        report_file = f"{config['base_output_dir']}/basecalling_report.html"
+        
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
+        
         qs_scores_list = config['qs_scores'].split()
         for qscore in qs_scores_list:
             output_dir = f"${{BASE_OUTPUT_DIR}}/demultiplexed_q{qscore}"
@@ -67,25 +73,44 @@ REF_GENOME="{config['ref_genome']}"
 INPUT_DIR="{config['input_dir']}"
 OUTPUT_DIR="{output_dir}"
 mkdir -p "${{OUTPUT_DIR}}"
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling and demultiplexing for Q-score {qscore}" >> \"{log_file}\"
 ${{DORADO_BIN}} basecaller -x "{config['cuda_device']}" --min-qscore "{qscore}" --no-trim --emit-fastq ${{MODEL_PATH}} ${{INPUT_DIR}} | \\
 ${{DORADO_BIN}} demux --kit-name "{config['kit_name']}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
-echo "Processing complete for {config['input_dir']} with Q-score {qscore}"
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir']} with Q-score {qscore}" >> \"{log_file}\"
 """
             script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
             script_content += f"    bam_file=\"${{fastq_file%.fastq}}.bam\"\n"
-            script_content += f"    echo \"Aligning ${{fastq_file}} to reference genome...\"\n"
+            script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning ${{fastq_file}} to reference genome...\" >> \"{log_file}\"\n"
             script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"$bam_file\"\n"
             script_content += f"    samtools index \"$bam_file\"\n"
-            script_content += f"    echo \"Alignment and BAM conversion completed for ${{bam_file}}\"\n"
+            script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for ${{bam_file}}\" >> \"{log_file}\"\n"
             script_content += "done\n"
-    script_content += "echo \"All processes are complete.\"\n"
-    return jsonify(script=script_content)
+    
+    script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - All processes are complete.\" >> \"{log_file}\"\n"
+    
+    # Generate HTML report
+    script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Basecalling Log Report</title></head><body><div class=\"log-container\"><h1>Basecalling Log Report</h1>' > \"{report_file}\"\n"
+    script_content += f"while IFS= read -r line; do\n"
+    script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
+    script_content += f"done < \"{log_file}\"\n"
+    script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
+    
+    # Échapper les caractères spéciaux pour JSON
+    escaped_script_content = json.dumps(script_content)
+
+    return jsonify(script=escaped_script_content)
+
 
 @basecalling_bp.route('/download_basecalling_script', methods=['GET'])
 @role_requis('superadmin')
 def download_basecalling_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_basecalling:
+        log_file = f"{config['base_output_dir']}/basecalling_log.txt"
+        report_file = f"{config['base_output_dir']}/basecalling_report.html"
+        
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
+        
         qs_scores_list = config['qs_scores'].split()
         for qscore in qs_scores_list:
             output_dir = f"${{BASE_OUTPUT_DIR}}/demultiplexed_q{qscore}"
@@ -98,18 +123,28 @@ REF_GENOME="{config['ref_genome']}"
 INPUT_DIR="{config['input_dir']}"
 OUTPUT_DIR="{output_dir}"
 mkdir -p "${{OUTPUT_DIR}}"
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling and demultiplexing for Q-score {qscore}" >> \"{log_file}\"
 ${{DORADO_BIN}} basecaller -x "{config['cuda_device']}" --min-qscore "{qscore}" --no-trim --emit-fastq ${{MODEL_PATH}} ${{INPUT_DIR}} | \\
 ${{DORADO_BIN}} demux --kit-name "{config['kit_name']}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
-echo "Processing complete for {config['input_dir']} with Q-score {qscore}"
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir']} with Q-score {qscore}" >> \"{log_file}\"
 """
             script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
             script_content += f"    bam_file=\"${{fastq_file%.fastq}}.bam\"\n"
-            script_content += f"    echo \"Aligning ${{fastq_file}} to reference genome...\"\n"
+            script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning ${{fastq_file}} to reference genome...\" >> \"{log_file}\"\n"
             script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"$bam_file\"\n"
             script_content += f"    samtools index \"$bam_file\"\n"
-            script_content += f"    echo \"Alignment and BAM conversion completed for ${{bam_file}}\"\n"
+            script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for ${{bam_file}}\" >> \"{log_file}\"\n"
             script_content += "done\n"
-    script_content += "echo \"All processes are complete.\"\n"
+    
+    script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - All processes are complete.\" >> \"{log_file}\"\n"
+    
+    # Generate HTML report
+    script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Basecalling Log Report</title></head><body><div class=\"log-container\"><h1>Basecalling Log Report</h1>' > \"{report_file}\"\n"
+    script_content += f"while IFS= read -r line; do\n"
+    script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
+    script_content += f"done < \"{log_file}\"\n"
+    script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
+    
     script_path = '/data/Script_Site/tmp/basecalling_script.sh'
     with open(script_path, 'w') as file:
         file.write(script_content)
