@@ -43,31 +43,31 @@ def generate_vcf_script():
         vcf_directory = os.path.join(config['output_dir'], "vcf")
         log_file = f"{vcf_directory}/vcf_log.txt"
         report_file = f"{vcf_directory}/vcf_report.html"
+        bam_basename = os.path.basename(config['bam_file']).replace('.bam', '')
+        output_vcf_path = os.path.join(vcf_directory, f"{bam_basename}.vcf")
 
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
-
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished indexing {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        # Commande sans logging
+        # Commandes pour générer le VCF sans logging des contenus intermédiaires
         script_content += f"bcftools mpileup -Ou -f \"{config['ref_genome']}\" \"{config['bam_file']}\" | bcftools call -mv -Ob -o \"{output_vcf_path}.bcf\"\n"
         script_content += f"bcftools index \"{output_vcf_path}.bcf\"\n"
         script_content += f"bcftools view -Oz -o \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf\"\n"
         script_content += f"tabix -p vcf \"{output_vcf_path}.vcf.gz\"\n"
-        script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}.vcf\"\n"
+        script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}\"\n"
         script_content += f"rm -f \"{output_vcf_path}.bcf\" \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf.csi\" \"{output_vcf_path}.vcf.gz.tbi\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished VCF processing for {config['bam_file']}\" >> \"{log_file}\"\n"
 
         # Generate HTML report
-        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>VCF Log Report</title></head><body><div class=\"log-container\"><h1>VCF Log Report</h1>' > {report_file}\n"
+        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>VCF Log Report</title></head><body><div class=\"log-container\"><h1>VCF Log Report</h1>' > \"{report_file}\"\n"
         script_content += f"while IFS= read -r line; do\n"
-        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
+        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
-        script_content += f"echo '</div></body></html>' >> {report_file}\n"
+        script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
 
     script_path = '/data/Script_Site/tmp/vcf_script.sh'
     with open(script_path, 'w') as file:
@@ -79,6 +79,7 @@ def generate_vcf_script():
 
 
 
+
 @vcf_bp.route('/download_vcf_script', methods=['GET'])
 @role_requis('superadmin')
 def download_vcf_script():
@@ -87,31 +88,31 @@ def download_vcf_script():
         vcf_directory = os.path.join(config['output_dir'], "vcf")
         log_file = f"{vcf_directory}/vcf_log.txt"
         report_file = f"{vcf_directory}/vcf_report.html"
+        bam_basename = os.path.basename(config['bam_file']).replace('.bam', '')
+        output_vcf_path = os.path.join(vcf_directory, f"{bam_basename}.vcf")
 
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
-
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished indexing {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        # Commande sans logging
+        # Commandes pour générer le VCF sans logging des contenus intermédiaires
         script_content += f"bcftools mpileup -Ou -f \"{config['ref_genome']}\" \"{config['bam_file']}\" | bcftools call -mv -Ob -o \"{output_vcf_path}.bcf\"\n"
         script_content += f"bcftools index \"{output_vcf_path}.bcf\"\n"
         script_content += f"bcftools view -Oz -o \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf\"\n"
         script_content += f"tabix -p vcf \"{output_vcf_path}.vcf.gz\"\n"
-        script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}.vcf\"\n"
+        script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}\"\n"
         script_content += f"rm -f \"{output_vcf_path}.bcf\" \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf.csi\" \"{output_vcf_path}.vcf.gz.tbi\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished VCF processing for {config['bam_file']}\" >> \"{log_file}\"\n"
 
         # Generate HTML report
-        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>VCF Log Report</title></head><body><div class=\"log-container\"><h1>VCF Log Report</h1>' > {report_file}\n"
+        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>VCF Log Report</title></head><body><div class=\"log-container\"><h1>VCF Log Report</h1>' > \"{report_file}\"\n"
         script_content += f"while IFS= read -r line; do\n"
-        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
+        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
-        script_content += f"echo '</div></body></html>' >> {report_file}\n"
+        script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
 
     script_path = '/data/Script_Site/tmp/vcf_script.sh'
     with open(script_path, 'w') as file:
