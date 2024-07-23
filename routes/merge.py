@@ -70,12 +70,12 @@ def download_bam_script():
         report_file = f"{config['output_dir']}/merge_report.html"
         
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
-        script_content += f"echo \"Starting merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"samtools merge \"{config['output_dir']}/merged.bam\" \"{config['input_dir']}\"/*.bam\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
-        script_content += f"    echo \"Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"else\n"
-        script_content += f"    echo \"Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"fi\n\n"
         
         # Generate HTML report
@@ -92,6 +92,7 @@ def download_bam_script():
     response = make_response(send_file(script_path, as_attachment=True, download_name="bam_merge_script.sh"))
     response.headers["Content-Disposition"] = "attachment; filename=bam_merge_script.sh"
     return response
+
 
 
 @merge_bp.route('/get_configurations_merge', methods=['GET'])
