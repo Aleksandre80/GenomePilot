@@ -47,7 +47,7 @@ def generate_vcf_script():
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_dir']))
+        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
@@ -68,7 +68,15 @@ def generate_vcf_script():
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
-    return jsonify(script=script_content)
+
+    script_path = '/data/Script_Site/tmp/vcf_script.sh'
+    with open(script_path, 'w') as file:
+        file.write(script_content)
+    
+    response = make_response(send_file(script_path, as_attachment=True, download_name="vcf_script.sh"))
+    response.headers["Content-Disposition"] = "attachment; filename=vcf_script.sh"
+    return response
+
 
 
 @vcf_bp.route('/download_vcf_script', methods=['GET'])
@@ -83,7 +91,7 @@ def download_vcf_script():
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_dir']))
+        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
