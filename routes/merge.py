@@ -110,7 +110,7 @@ def delete_configuration_merge():
     except IndexError:
         return jsonify(success=False, message="Configuration does not exist.")
 
-@merge_bp.route('/start_script', methods=['POST'])
+@merge_bp.route('/start_merge_script', methods=['POST'])
 @role_requis('superadmin')
 def handle_script():
     new_workflow = Workflow(name="BAM Merge", status="Running")

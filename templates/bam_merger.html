@@ -166,6 +166,16 @@
                 })
                 .catch(error => console.error('Error loading configurations:', error));
         }
+
+        function startScript() {
+            fetch('/start_merge_script')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Script started:', data);
+                    alert('Script started');
+                })
+                .catch(error => console.error('Error starting script:', error));
+        }
     </script>
     <script>
         function generateAndShowScript() {
@@ -184,60 +194,6 @@
             window.location.href = '/download_bam_script';
         }
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var socket = io.connect('http://172.16.102.219:5000/test');
-            console.log('Socket.IO status:', typeof io);
-
-            var runButton = document.getElementById('runScriptButton');
-            if (runButton) {
-                runButton.addEventListener('click', function () {
-                    socket.emit('start_script');
-                    console.log('Script start requested.');  // Ajoutez ceci pour débugger
-                });
-            } else {
-                console.error('Run script button not found!');  // Ajoutez ceci pour débugger
-            }
-
-            socket.on('script_output', function (data) {
-                if (data.type === 'stderr') {
-                    console.error(data.message);
-                } else {
-                    console.log(data.message);
-                }
-            });
-
-            socket.on('script_error', function (data) {
-                console.error('Script error:', data.status);  // Affichez le statut de l'erreur
-            });
-        });
-
-    </script>
-    <!-- <script>
-        function downloadScript() {
-            var downloadButton = document.getElementById('start-script');
-            fetch('/download_bam_script')
-                .then(response => {
-                    if (response.ok) {
-                        downloadButton.disabled = false;  // Réactiver le bouton après le téléchargement
-                        return response.blob();
-                    }
-                    throw new Error('Network response was not ok.');
-                })
-                .then(blob => {
-                    var url = window.URL.createObjectURL(blob);
-                    var a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = 'bam_merge_script.sh';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                })
-                .catch(error => console.error('Download failed:', error));
-        }
-
-    </script> -->
     <script src="/static/js/analyse_count.js"></script>
 </body>
 
