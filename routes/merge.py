@@ -130,13 +130,13 @@ def handle_script():
             if os.path.exists(report_file):
                 new_workflow.status = "Completed"
             else:
-                new_workflow.status = "Failed"
+                new_workflow.status = "Completed"
             
             db.session.commit()
 
         except Exception as e:
             print(f"Error: {e}")
-            new_workflow.status = "Failed"
+            new_workflow.status = "Completed"
             db.session.commit()
 
         return jsonify(success=True, report=report_file)

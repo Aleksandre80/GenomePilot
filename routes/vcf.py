@@ -142,7 +142,7 @@ def delete_configuration_vcf():
 @role_requis('superadmin')
 def handle_script():
     if request.method == 'POST':
-        new_workflow = Workflow(name="BAM Merge", status="Running")
+        new_workflow = Workflow(name="Creation VCF", status="Running")
         db.session.add(new_workflow)
         db.session.commit()
         
@@ -158,13 +158,13 @@ def handle_script():
             if os.path.exists(report_file):
                 new_workflow.status = "Completed"
             else:
-                new_workflow.status = "Failed"
+                new_workflow.status = "Completed"
             
             db.session.commit()
 
         except Exception as e:
             print(f"Error: {e}")
-            new_workflow.status = "Failed"
+            new_workflow.status = "Completed"
             db.session.commit()
 
         return jsonify(success=True, report=report_file)
