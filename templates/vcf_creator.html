@@ -15,6 +15,7 @@
             background-color: #f8f9fa;
             font-family: Arial, sans-serif;
         }
+
         .navbar,
         .subnav {
             background-color: #fff;
@@ -34,6 +35,7 @@
             border-bottom: 3px solid blue;
             color: blue;
         }
+
         .container {
             max-width: 90%;
         }
@@ -57,39 +59,49 @@
                         <a class="nav-link active" href="#">Available Workflows</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/status">Analyses <span id="runningCount" class="badge bg-primary">2</span></a>
+                        <a class="nav-link" href="/status">Analyses <span id="runningCount"
+                                class="badge bg-primary">2</span></a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-    
+
     <div class="container">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
-                <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+                <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='%236c757d'/%3E%3C/svg%3E&#34;);"
+                    aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/">Home</a></li>
                         <li class="breadcrumb-item active"><a href="/vcf_creator">VCF Creator Configuration</a></li>
-                        <li class="breadcrumb-item active" aria-current="page"><a href="/history-vcf">Historique</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><a href="/history-vcf">Historique</a>
+                        </li>
                     </ol>
-                  </nav>
+                </nav>
                 <h1 class="mb-4 flex-grow-1 text-center">VCF Creator Configuration</h1>
             </div>
         </div>
 
         <form id="configForm">
             <div class="mb-3">
-                <label for="ref_genome" class="form-label">Sélectionnez le chemin d'accès de votre référence (.fa):</label>
-                <input type="text" class="form-control" name="ref_genome" placeholder="/data/Reference/hg38.fa" required>
+                <label for="ref_genome" class="form-label">Sélectionnez le chemin d'accès de votre référence
+                    (.fa):</label>
+                <input type="text" class="form-control" name="ref_genome" placeholder="/data/Reference/hg38.fa"
+                    required>
             </div>
             <div class="mb-3">
                 <label for="bam_file" class="form-label">Selectionnez un seul fichier BAM:</label>
-                <input type="text" class="form-control" id="bam_file" name="bam_file" placeholder="/data/RYR2_bis/2023-1893/20240528_1410_X1_FAY45904_ca3b3dfd/Basecalling/demultiplexed_q14/SQK-NBD114-24_barcode24.bam" required>
+                <input type="text" class="form-control" id="bam_file" name="bam_file"
+                    placeholder="/data/RYR2_bis/2023-1893/20240528_1410_X1_FAY45904_ca3b3dfd/Basecalling/demultiplexed_q14/SQK-NBD114-24_barcode24.bam"
+                    required>
             </div>
             <div class="mb-3">
-                <label for="output_dir" class="form-label">Spécifiez le chemin d'accès de votre dossier de sortie :</label>
-                <input type="text" class="form-control" id="output_dir" name="output_dir" placeholder="/data/RYR2_bis/2023-1893/20240528_1410_X1_FAY45904_ca3b3dfd/Basecalling/demultiplexed_q14/GenomePilot" required>
+                <label for="output_dir" class="form-label">Spécifiez le chemin d'accès de votre dossier de sortie
+                    :</label>
+                <input type="text" class="form-control" id="output_dir" name="output_dir"
+                    placeholder="/data/RYR2_bis/2023-1893/20240528_1410_X1_FAY45904_ca3b3dfd/Basecalling/demultiplexed_q14/GenomePilot"
+                    required>
             </div>
             <button type="submit" class="btn btn-primary">Ajouter la configuration</button>
         </form>
@@ -175,12 +187,13 @@
                 .then(response => response.json())
                 .then(data => {
                     const codeBlock = document.getElementById('scriptArea');
-                    codeBlock.textContent = data.script; // Utilisez textContent pour préserver les sauts de ligne
+                    codeBlock.textContent = JSON.parse(data.script); // Utilisez JSON.parse pour décoder le contenu échappé
                     Prism.highlightElement(codeBlock);  // Demandez à Prism de mettre en évidence le nouveau contenu
                 })
                 .catch(error => console.error('Error:', error));
         }
     </script>
+
     <script>
         function downloadScript() {
             window.location.href = '/download_vcf_script';
