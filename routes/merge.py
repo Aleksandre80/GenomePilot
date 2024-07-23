@@ -54,7 +54,9 @@ def generate_bam_script():
         
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Log Report</title></head><body><div class=\"log-container\"><h1>Log Report</h1>' > {report_file}\n"
-        script_content += f"while IFS= read -r line; do echo '<div class=\"log-entry\">${{line}}</div>' >> {report_file}; done < {log_file}\n"
+        script_content += f"while IFS= read -r line; do\n"
+        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
+        script_content += f"done < {log_file}\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
     
     return jsonify(script=script_content)
@@ -78,7 +80,9 @@ def download_bam_script():
         
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Log Report</title></head><body><div class=\"log-container\"><h1>Log Report</h1>' > {report_file}\n"
-        script_content += f"while IFS= read -r line; do echo '<div class=\"log-entry\">${{line}}</div>' >> {report_file}; done < {log_file}\n"
+        script_content += f"while IFS= read -r line; do\n"
+        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
+        script_content += f"done < {log_file}\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
     
     script_path = '/data/Script_Site/tmp/bam_merge_script.sh'
@@ -88,6 +92,7 @@ def download_bam_script():
     response = make_response(send_file(script_path, as_attachment=True, download_name="bam_merge_script.sh"))
     response.headers["Content-Disposition"] = "attachment; filename=bam_merge_script.sh"
     return response
+
 
 @merge_bp.route('/get_configurations_merge', methods=['GET'])
 @role_requis('superadmin')
