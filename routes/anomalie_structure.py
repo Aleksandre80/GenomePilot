@@ -45,9 +45,9 @@ def generate_anomalie_structure_script():
 
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Anomalie Structure analysis for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"source ~/.pyenv/versions/sniffles-env/bin/activate\n"
-        script_content += f"cd /usr/local/bin/Sniffles-2.4\n"
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Environment activated and output directory created.\" >> \"{log_file}\"\n"
+        script_content += f"cd /usr/local/bin/Sniffles-2.4\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Environment activated and directory changed to /usr/local/bin/Sniffles-2.4\" >> \"{log_file}\"\n"
         
         # Commande pour générer le fichier VCF
         script_content += f"./sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\" >> \"{log_file}\" 2>&1\n"
@@ -72,19 +72,20 @@ def generate_anomalie_structure_script():
 
 
 
+
 @anomalie_structure_bp.route('/download_anomalie_structure_script', methods=['GET'])
 @role_requis('superadmin')
 def download_anomalie_structure_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_anomalie_structure:
-        log_file = f"{config['output_dir']}/anomalie_structure_log.txt"
+                log_file = f"{config['output_dir']}/anomalie_structure_log.txt"
         report_file = f"{config['output_dir']}/anomalie_structure_report.html"
 
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Anomalie Structure analysis for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"source ~/.pyenv/versions/sniffles-env/bin/activate\n"
-        script_content += f"cd /usr/local/bin/Sniffles-2.4\n"
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Environment activated and output directory created.\" >> \"{log_file}\"\n"
+        script_content += f"cd /usr/local/bin/Sniffles-2.4\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Environment activated and directory changed to /usr/local/bin/Sniffles-2.4\" >> \"{log_file}\"\n"
         
         # Commande pour générer le fichier VCF
         script_content += f"./sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\" >> \"{log_file}\" 2>&1\n"
