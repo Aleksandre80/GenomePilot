@@ -5,6 +5,7 @@ from utils import role_requis
 import json
 import subprocess
 import shlex
+import os
 
 anomalie_structure_bp = Blueprint('anomalie_structure_bp', __name__)
 
