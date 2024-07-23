@@ -88,8 +88,8 @@
                 <input type="text" class="form-control" id="bam_file" name="bam_file" placeholder="/data/RYR2_bis/2023-1893/20240528_1410_X1_FAY45904_ca3b3dfd/Basecalling/demultiplexed_q14/SQK-NBD114-24_barcode24.bam" required>
             </div>
             <div class="mb-3">
-                <label for="output_vcf" class="form-label">Spécifiez le nom que vous voulez donner à votre vcf (sans l'extension):</label>
-                <input type="text" class="form-control" id="output_vcf" name="output_vcf" placeholder="monvcf" required>
+                <label for="output_dir" class="form-label">Spécifiez le chemin d'accès de votre dossier de sortie :</label>
+                <input type="text" class="form-control" id="output_dir" name="output_dir" placeholder="/data/RYR2_bis/2023-1893/20240528_1410_X1_FAY45904_ca3b3dfd/Basecalling/demultiplexed_q14/GenomePilot" required>
             </div>
             <button type="submit" class="btn btn-primary">Ajouter la configuration</button>
         </form>
@@ -121,7 +121,7 @@
                         const configList = document.getElementById('configList');
                         const newItem = document.createElement('li');
                         newItem.className = 'list-group-item';
-                        newItem.textContent = `Ref Gen: ${formData.get('ref_genome')}, BAM: ${formData.get('bam_file')}, VCF: ${formData.get('output_vcf')}`;
+                        newItem.textContent = `Ref Gen: ${formData.get('ref_genome')}, BAM: ${formData.get('bam_file')}, VCF: ${formData.get('output_dir')}`;
                         configList.appendChild(newItem);
                     } else {
                         alert(data.message);
@@ -135,7 +135,7 @@
             configurations.forEach((config, index) => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item';
-                li.textContent = `Config ${index + 1}: ${config.ref_genome} - ${config.bam_file} - ${config.output_vcf}`;
+                li.textContent = `Config ${index + 1}: ${config.ref_genome} - ${config.bam_file} - ${config.output_dir}`;
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Delete';
                 deleteBtn.className = 'btn btn-danger btn-sm float-right';
@@ -185,35 +185,6 @@
         function downloadScript() {
             window.location.href = '/download_vcf_script';
         }
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var socket = io.connect('http://172.16.102.219:5000/vcf');
-            console.log('Socket.IO status:', typeof io);
-
-            var runButton = document.getElementById('runScriptButton');
-            if (runButton) {
-                runButton.addEventListener('click', function () {
-                    socket.emit('start_vcf_script');
-                    console.log('Script start requested.');  // Ajoutez ceci pour débugger
-                });
-            } else {
-                console.error('Run script button not found!');  // Ajoutez ceci pour débugger
-            }
-
-            socket.on('script_output', function (data) {
-                if (data.type === 'stderr') {
-                    console.error(data.message);
-                } else {
-                    console.log(data.message);
-                }
-            });
-
-            socket.on('script_error', function (data) {
-                console.error('Script error:', data.status);  // Affichez le statut de l'erreur
-            });
-        });
-
     </script>
     <script src="/static/js/analyse_count.js"></script>
 </body>

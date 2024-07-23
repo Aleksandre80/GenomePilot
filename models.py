@@ -22,7 +22,7 @@ class ConfigurationVCF(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ref_genome = db.Column(db.String(120), nullable=False)
     bam_file = db.Column(db.String(120), nullable=False)
-    output_vcf = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
 class FullWorkflowConfiguration(db.Model):
