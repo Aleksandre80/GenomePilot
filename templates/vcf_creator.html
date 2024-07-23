@@ -150,7 +150,7 @@
             configurations.forEach((config, index) => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item';
-                li.textContent = `Config ${index + 1}: ${config.input_dir} - ${config.output_dir}`;
+                li.textContent = `Config ${index + 1}: ${config.ref_genome} - ${config.bime_file} -${config.output_dir}`;
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Delete';
                 deleteBtn.className = 'btn btn-danger btn-sm float-right';
