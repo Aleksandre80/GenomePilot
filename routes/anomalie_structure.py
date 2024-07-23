@@ -50,7 +50,7 @@ def generate_anomalie_structure_script():
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Environment activated and directory changed to /usr/local/bin/Sniffles-2.4\" >> \"{log_file}\"\n"
         
         # Commande pour générer le fichier VCF
-        script_content += f"./sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\" >> \"{log_file}\" 2>&1\n"
         
         script_content += f"if [ -f \"{config['output_dir']}/output.vcf\" ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Anomalie Structure analysis completed and output.vcf generated.\" >> \"{log_file}\"\n"
@@ -88,7 +88,7 @@ def download_anomalie_structure_script():
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Environment activated and directory changed to /usr/local/bin/Sniffles-2.4\" >> \"{log_file}\"\n"
         
         # Commande pour générer le fichier VCF
-        script_content += f"./sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\" >> \"{log_file}\" 2>&1\n"
         
         script_content += f"if [ -f \"{config['output_dir']}/output.vcf\" ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Anomalie Structure analysis completed and output.vcf generated.\" >> \"{log_file}\"\n"
