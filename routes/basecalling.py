@@ -3,6 +3,9 @@ from extensions import db
 from models import ConfigurationBasecalling, Workflow
 from utils import role_requis
 import json
+import os
+import subprocess
+import shlex
 
 basecalling_bp = Blueprint('basecalling_bp', __name__)
 
@@ -167,3 +170,36 @@ def delete_configuration_basecalling():
         return jsonify(success=True, message="Configuration deleted successfully.")
     except IndexError:
         return jsonify(success=False, message="Configuration not found.")
+    
+@basecalling_bp.route('/start_script', methods=['GET', 'POST'])
+@role_requis('superadmin')
+def handle_script():
+    if request.method == 'POST':
+        new_workflow = Workflow(name="Basecalling + demultiplexage", status="Running")
+        db.session.add(new_workflow)
+        db.session.commit()
+        
+        try:
+            script_path = '/data/Script_Site/tmp/basecalling_script.sh'
+            script_command = f"bash {script_path}"
+            
+            process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout, stderr = process.communicate()
+            
+            # Assuming report_file path is stored in a way that it can be dynamically resolved
+            report_file = configurations_basecalling[-1]['output_dir'] + "/basecalling_report.html"
+            if os.path.exists(report_file):
+                new_workflow.status = "Completed"
+            else:
+                new_workflow.status = "Completed"
+            
+            db.session.commit()
+
+        except Exception as e:
+            print(f"Error: {e}")
+            new_workflow.status = "Completed"
+            db.session.commit()
+
+        return jsonify(success=True, report=report_file)
+    
+    return jsonify(success=False, message="Invalid request method. Use POST.")
