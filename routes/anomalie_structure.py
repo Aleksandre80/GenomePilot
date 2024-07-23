@@ -48,10 +48,14 @@ def generate_anomalie_structure_script():
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Environment activated and output directory created.\" >> \"{log_file}\"\n"
         
-        # Commande sans logging des contenus intermédiaires
-        script_content += f"/usr/local/bin/sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\"\n"
+        # Commande pour générer le fichier VCF
+        script_content += f"/usr/local/bin/sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\" >> \"{log_file}\" 2>&1\n"
         
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Anomalie Structure analysis completed for {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"if [ -f \"{config['output_dir']}/output.vcf\" ]; then\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Anomalie Structure analysis completed and output.vcf generated.\" >> \"{log_file}\"\n"
+        script_content += f"else\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Anomalie Structure analysis failed. output.vcf not generated.\" >> \"{log_file}\"\n"
+        script_content += f"fi\n"
         
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Anomalie Structure Log Report</title></head><body><div class=\"log-container\"><h1>Anomalie Structure Log Report</h1>' > \"{report_file}\"\n"
@@ -64,6 +68,7 @@ def generate_anomalie_structure_script():
     escaped_script_content = json.dumps(script_content)
 
     return jsonify(script=escaped_script_content)
+
 
 
 @anomalie_structure_bp.route('/download_anomalie_structure_script', methods=['GET'])
@@ -79,10 +84,14 @@ def download_anomalie_structure_script():
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Environment activated and output directory created.\" >> \"{log_file}\"\n"
         
-        # Commande sans logging des contenus intermédiaires
-        script_content += f"/usr/local/bin/sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\"\n"
+        # Commande pour générer le fichier VCF
+        script_content += f"/usr/local/bin/sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}/output.vcf\" >> \"{log_file}\" 2>&1\n"
         
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Anomalie Structure analysis completed for {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"if [ -f \"{config['output_dir']}/output.vcf\" ]; then\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Anomalie Structure analysis completed and output.vcf generated.\" >> \"{log_file}\"\n"
+        script_content += f"else\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Anomalie Structure analysis failed. output.vcf not generated.\" >> \"{log_file}\"\n"
+        script_content += f"fi\n"
         
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Anomalie Structure Log Report</title></head><body><div class=\"log-container\"><h1>Anomalie Structure Log Report</h1>' > \"{report_file}\"\n"
