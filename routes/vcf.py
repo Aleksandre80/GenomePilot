@@ -47,7 +47,7 @@ def generate_vcf_script():
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
+        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_dir']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
@@ -80,7 +80,7 @@ def download_vcf_script():
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
+        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_dir']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
@@ -98,7 +98,7 @@ def download_vcf_script():
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
-
+        
     script_path = '/data/Script_Site/tmp/vcf_script.sh'
     with open(script_path, 'w') as file:
         file.write(script_content)
