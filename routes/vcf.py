@@ -47,17 +47,20 @@ def generate_vcf_script():
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_dir']))
+        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"bcftools mpileup -Ou -f \"{config['ref_genome']}\" \"{config['bam_file']}\" | bcftools call -mv -Ob -o \"{output_vcf_path}.bcf\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"bcftools index \"{output_vcf_path}.bcf\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"bcftools view -Oz -o \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"tabix -p vcf \"{output_vcf_path}.vcf.gz\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}.vcf\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"rm -f \"{output_vcf_path}.bcf\" \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf.csi\" \"{output_vcf_path}.vcf.gz.tbi\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Variant calling and file processing completed for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished indexing {config['bam_file']}\" >> \"{log_file}\"\n"
+
+        # Commande sans logging
+        script_content += f"bcftools mpileup -Ou -f \"{config['ref_genome']}\" \"{config['bam_file']}\" | bcftools call -mv -Ob -o \"{output_vcf_path}.bcf\"\n"
+        script_content += f"bcftools index \"{output_vcf_path}.bcf\"\n"
+        script_content += f"bcftools view -Oz -o \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf\"\n"
+        script_content += f"tabix -p vcf \"{output_vcf_path}.vcf.gz\"\n"
+        script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}.vcf\"\n"
+        script_content += f"rm -f \"{output_vcf_path}.bcf\" \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf.csi\" \"{output_vcf_path}.vcf.gz.tbi\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished VCF processing for {config['bam_file']}\" >> \"{log_file}\"\n"
 
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>VCF Log Report</title></head><body><div class=\"log-container\"><h1>VCF Log Report</h1>' > {report_file}\n"
@@ -80,17 +83,20 @@ def download_vcf_script():
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_dir']))
+        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"bcftools mpileup -Ou -f \"{config['ref_genome']}\" \"{config['bam_file']}\" | bcftools call -mv -Ob -o \"{output_vcf_path}.bcf\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"bcftools index \"{output_vcf_path}.bcf\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"bcftools view -Oz -o \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"tabix -p vcf \"{output_vcf_path}.vcf.gz\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}.vcf\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"rm -f \"{output_vcf_path}.bcf\" \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf.csi\" \"{output_vcf_path}.vcf.gz.tbi\" >> \"{log_file}\" 2>&1\n"
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Variant calling and file processing completed for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished indexing {config['bam_file']}\" >> \"{log_file}\"\n"
+
+        # Commande sans logging
+        script_content += f"bcftools mpileup -Ou -f \"{config['ref_genome']}\" \"{config['bam_file']}\" | bcftools call -mv -Ob -o \"{output_vcf_path}.bcf\"\n"
+        script_content += f"bcftools index \"{output_vcf_path}.bcf\"\n"
+        script_content += f"bcftools view -Oz -o \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf\"\n"
+        script_content += f"tabix -p vcf \"{output_vcf_path}.vcf.gz\"\n"
+        script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}.vcf\"\n"
+        script_content += f"rm -f \"{output_vcf_path}.bcf\" \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf.csi\" \"{output_vcf_path}.vcf.gz.tbi\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished VCF processing for {config['bam_file']}\" >> \"{log_file}\"\n"
 
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>VCF Log Report</title></head><body><div class=\"log-container\"><h1>VCF Log Report</h1>' > {report_file}\n"
@@ -98,7 +104,7 @@ def download_vcf_script():
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
-        
+
     script_path = '/data/Script_Site/tmp/vcf_script.sh'
     with open(script_path, 'w') as file:
         file.write(script_content)
@@ -106,6 +112,7 @@ def download_vcf_script():
     response = make_response(send_file(script_path, as_attachment=True, download_name="vcf_script.sh"))
     response.headers["Content-Disposition"] = "attachment; filename=vcf_script.sh"
     return response
+
 
 
 
