@@ -121,6 +121,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+                document.addEventListener('DOMContentLoaded', function () {
+            fetchConfigurations();
+        });
+
         document.getElementById('configForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(this);
@@ -130,16 +134,15 @@
             }).then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const configList = document.getElementById('configList');
-                        const newItem = document.createElement('li');
-                        newItem.className = 'list-group-item';
-                        newItem.textContent = `Ref Gen: ${formData.get('ref_genome')}, BAM: ${formData.get('bam_file')}, VCF: ${formData.get('output_dir')}`;
-                        configList.appendChild(newItem);
+                        console.log('Configuration added:', data.configurations);
+                        fetchConfigurations(); // Actualiser la liste après ajout
                     } else {
                         alert(data.message);
                     }
-                });
+                })
+                .catch(error => console.error('Error adding configuration:', error));
         });
+
 
         function updateConfigList(configurations) {
             const configList = document.getElementById('configList');
@@ -147,7 +150,7 @@
             configurations.forEach((config, index) => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item';
-                li.textContent = `Config ${index + 1}: ${config.ref_genome} - ${config.bam_file} - ${config.output_dir}`;
+                li.textContent = `Config ${index + 1}: ${config.input_dir} - ${config.output_dir}`;
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Delete';
                 deleteBtn.className = 'btn btn-danger btn-sm float-right';
@@ -165,21 +168,22 @@
             }).then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        updateConfigList(result.configurations);
+                        fetchConfigurations(); // Actualiser la liste après suppression
                     } else {
                         alert('Failed to delete configuration');
                     }
-                });
+                })
+                .catch(error => console.error('Error deleting configuration:', error));
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
+        function fetchConfigurations() {
             fetch('/get_configurations_vcf')
                 .then(response => response.json())
                 .then(configurations => {
                     updateConfigList(configurations);
                 })
                 .catch(error => console.error('Error loading configurations:', error));
-        });
+        }
 
         function startScript() {
             fetch('/start_vcf_script', {
