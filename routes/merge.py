@@ -118,20 +118,15 @@ def handle_script():
         db.session.add(new_workflow)
         db.session.commit()
         
-        data = request.json
-        output_dir = data.get('output_dir')
-        input_dir = data.get('input_dir')
-        
-        if not all([input_dir, output_dir]):
-            return jsonify(success=False, message="Please specify both input and output directories.")
-        
-        script_command = f"bash /data/Script_Site/tmp/bam_merge_script.sh {output_dir} {input_dir}"
-        
         try:
+            script_path = '/data/Script_Site/tmp/bam_merge_script.sh'
+            script_command = f"bash {script_path}"
+            
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            report_file = f"{output_dir}/merge_report.html"
+            # Assuming report_file path is stored in a way that it can be dynamically resolved
+            report_file = configurations_merge[-1]['output_dir'] + "/merge_report.html"
             if os.path.exists(report_file):
                 new_workflow.status = "Completed"
             else:
@@ -147,4 +142,3 @@ def handle_script():
         return jsonify(success=True, report=report_file)
     
     return jsonify(success=False, message="Invalid request method. Use POST.")
-

@@ -175,18 +175,8 @@
         }
 
         function startScript() {
-            const inputDir = document.getElementById('inputDir').value;
-            const outputDir = document.getElementById('outputDir').value;
-
             fetch('/start_merge_script', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    input_dir: inputDir,
-                    output_dir: outputDir,
-                }),
+                method: 'POST'
             })
                 .then(response => response.json())
                 .then(data => {
