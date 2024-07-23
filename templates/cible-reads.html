@@ -92,8 +92,8 @@
                     required>
             </div>
             <div class="mb-3">
-                <label for="output_dir" class="form-label">Selectionnez votre dossier où vous voulez retrouver votre
-                    fichier de sortie :</label>
+                <label for="output_dir" class="form-label">Selectionnez votre dossier où vous voulez retrouver votre BAM
+                    ciblé :</label>
                 <input type="text" class="form-control" id="output_dir" name="output_dir"
                     placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​/GenomePilot"
                     required>
@@ -114,7 +114,7 @@
         <pre><code class="language-bash" id="scriptArea"></code></pre>
         <!-- <button onclick="copyToClipboard()">Copier</button> -->
         <button onclick="downloadScript()" class="btn btn-primary">Télécharger le script sur la machine</button>
-        <button id="runScriptButton" class="btn btn-success">Lancer le script sur la machine</button>
+        <button onclick="startScript()" class="btn btn-success">Lancer le script sur la machine</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -182,6 +182,18 @@
                 })
                 .catch(error => console.error('Error loading configurations:', error));
         }
+
+        function startScript() {
+            fetch('/start_cible_reads_script', {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Script started:', data);
+                    alert('Script started');
+                })
+                .catch(error => console.error('Error starting script:', error));
+        }
     </script>
     <script>
         function generateAndShowScript() {
@@ -189,12 +201,13 @@
                 .then(response => response.json())
                 .then(data => {
                     const codeBlock = document.getElementById('scriptArea');
-                    codeBlock.textContent = data.script; // Utilisez textContent pour préserver les sauts de ligne
+                    codeBlock.textContent = JSON.parse(data.script); // Utilisez JSON.parse pour décoder le contenu échappé
                     Prism.highlightElement(codeBlock);  // Demandez à Prism de mettre en évidence le nouveau contenu
                 })
                 .catch(error => console.error('Error:', error));
         }
     </script>
+
     <script>
         function downloadScript() {
             window.location.href = '/download_cible_reads_script';
