@@ -5,6 +5,7 @@ import os
 from utils import role_requis
 import subprocess
 import shlex
+import json
 
 vcf_bp = Blueprint('vcf_bp', __name__)
 
@@ -69,13 +70,10 @@ def generate_vcf_script():
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
 
-    script_path = '/data/Script_Site/tmp/vcf_script.sh'
-    with open(script_path, 'w') as file:
-        file.write(script_content)
-    
-    response = make_response(send_file(script_path, as_attachment=True, download_name="vcf_script.sh"))
-    response.headers["Content-Disposition"] = "attachment; filename=vcf_script.sh"
-    return response
+    # Échapper les caractères spéciaux pour JSON
+    escaped_script_content = json.dumps(script_content)
+
+    return jsonify(script=escaped_script_content)
 
 
 
