@@ -154,7 +154,7 @@ def handle_script():
             stdout, stderr = process.communicate()
             
             # Assuming report_file path is stored in a way that it can be dynamically resolved
-            report_file = configurations_vcf[-1]['output_dir'] + "/merge_report.html"
+            report_file = configurations_vcf[-1]['output_dir'] + "/vcf_report.html"
             if os.path.exists(report_file):
                 new_workflow.status = "Completed"
             else:
