@@ -78,7 +78,7 @@ def generate_anomalie_structure_script():
 def download_anomalie_structure_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_anomalie_structure:
-                log_file = f"{config['output_dir']}/anomalie_structure_log.txt"
+        log_file = f"{config['output_dir']}/anomalie_structure_log.txt"
         report_file = f"{config['output_dir']}/anomalie_structure_report.html"
 
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Anomalie Structure analysis for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
