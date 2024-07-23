@@ -52,3 +52,8 @@ def disk_info():
 @common_bp.route('/disk')
 def disk():
     return render_template('disk.html')
+
+@common_bp.route('/running_workflows_count')
+def running_workflows_count():
+    count = Workflow.query.filter_by(status='Running').count()
+    return jsonify({'running_workflows_count': count})

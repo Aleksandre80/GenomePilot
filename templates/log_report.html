@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .log-container { margin: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .log-entry { margin-bottom: 10px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="log-container">
+        <h1>Log Report</h1>
+        <div class="log-entry success">Starting merge for BAM files in /path/to/input</div>
+        <div class="log-entry success">Processing file 1.bam...</div>
+        <div class="log-entry success">Processing file 2.bam...</div>
+        <div class="log-entry success">Processing file 3.bam...</div>
+        <div class="log-entry success">Merging complete for BAM files in /path/to/input</div>
+        <div class="log-entry error">Error: File 4.bam is corrupted and could not be processed.</div>
+    </div>
+</body>
+</html>

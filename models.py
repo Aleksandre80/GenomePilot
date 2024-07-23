@@ -42,6 +42,40 @@ class ConfigurationAnomalieStructure(db.Model):
     input_dir = db.Column(db.String(120), nullable=False)
     output_dir = db.Column(db.String(120), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class ConfigurationMoyenneReads(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_file = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
+    bed_file = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class ConfigurationPhredQuality(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_file = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
+    chr = db.Column(db.String(120), nullable=False)
+    pos1 = db.Column(db.String(120), nullable=False)
+    pos2 = db.Column(db.String(120), nullable=False)
+    phred_min = db.Column(db.String(120), nullable=False)
+    logs = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class ConfigurationCibleReads(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_file = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
+    bed_file = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class ConfigurationReadsLength(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_file = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
+    length_option = db.Column(db.String(120), nullable=False)
+    min_length = db.Column(db.String(120), nullable=True)
+    max_length = db.Column(db.String(120), nullable=True)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Workflow(db.Model):
     id = db.Column(db.Integer, primary_key=True)

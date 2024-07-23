@@ -37,9 +37,10 @@ def anomalie_structure():
 def generate_anomalie_structure_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_anomalie_structure:
+        script_content += f"pyenv activate sniffles-env"
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
         script_content += f"echo \"Starting Anomalie Structure analysis...\"\n"
-        script_content += f"sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}\"\n"
+        script_content += f"/usr/local/bin/sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}\"\n"
         script_content += f"echo \"Anomalie Structure analysis completed.\"\n"
     return jsonify(script=script_content)
 
@@ -48,9 +49,10 @@ def generate_anomalie_structure_script():
 def download_anomalie_structure_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_anomalie_structure:
+        script_content += f"pyenv activate sniffles-env"
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
         script_content += f"echo \"Starting Anomalie Structure analysis...\"\n"
-        script_content += f"sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}\"\n"
+        script_content += f"/usr/local/bin/sniffles --input \"{config['input_dir']}\" --vcf \"{config['output_dir']}\"\n"
         script_content += f"echo \"Anomalie Structure analysis completed.\"\n"
         
     script_path = '/data/Script_Site/tmp/anomalie_structure_script.sh'

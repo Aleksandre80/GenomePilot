@@ -36,6 +36,7 @@
             border-bottom: 3px solid blue;
             color: blue;
         }
+
         .container {
             margin-top: 20px;
         }
@@ -63,7 +64,8 @@
                         <a class="nav-link active" href="#">Available Workflows</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/status">Analyses <span id="runningCount" class="badge bg-primary">2</span></a>
+                        <a class="nav-link" href="/status">Analyses <span id="runningCount"
+                                class="badge bg-primary">2</span></a>
                     </li>
                 </ul>
             </div>
@@ -102,10 +104,12 @@
 
             <div class="mb-3">
                 <label for="ref_genome" class="form-label">Selectionnez votre référence (e.g., .mmi):</label>
-                <input type="text" class="form-control" name="ref_genome" placeholder="/data/References/hg38.mmi" required>
+                <input type="text" class="form-control" name="ref_genome" placeholder="/data/References/hg38.mmi"
+                    required>
             </div>
             <div class="mb-3">
-                <label for="qs_scores" class="form-label">Entrez vos Qscores, si vous voullez en mettre plusieurs séparez les par des espaces:</label>
+                <label for="qs_scores" class="form-label">Entrez vos Qscores, si vous voullez en mettre plusieurs
+                    séparez les par des espaces:</label>
                 <input type="text" class="form-control" name="qs_scores" placeholder="14 17 19" required>
             </div>
             <div class="mb-3">
@@ -217,26 +221,28 @@
         }
     </script>
     <script>
-        document.getElementById('configForm').onsubmit = async function (e) {
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchConfigurations();
+        });
+    
+        document.getElementById('configForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(this);
-            try {
-                const response = await fetch('/add_config', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error('Network response was not ok.');
-                const result = await response.json();
-                if (result.success) {
-                    updateConfigList(result.configurations);
-                    this.reset(); // Reset form after submission
-                } else {
-                    throw new Error(result.message || 'Failed to add configuration');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert(error.message);
-            }
-        };
-
-
+            fetch('/basecalling', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Configuration added:', data.configurations);
+                        fetchConfigurations(); // Actualiser la liste après ajout
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error('Error adding configuration:', error));
+        });
+    
         function updateConfigList(configurations) {
             const configList = document.getElementById('configList');
             configList.innerHTML = ''; // Clear existing entries
@@ -252,31 +258,34 @@
                 configList.appendChild(li);
             });
         }
-
+    
         function deleteConfiguration(index) {
-            fetch('/delete_config', {
+            fetch('/delete_config_basecalling', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ index })
             }).then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        updateConfigList(result.configurations);
+                        fetchConfigurations(); // Actualiser la liste après suppression
                     } else {
                         alert('Failed to delete configuration');
                     }
-                });
+                })
+                .catch(error => console.error('Error deleting configuration:', error));
         }
-
-        document.addEventListener('DOMContentLoaded', function () {
+    
+        function fetchConfigurations() {
             fetch('/get_configurations_basecalling')
                 .then(response => response.json())
                 .then(configurations => {
                     updateConfigList(configurations);
                 })
                 .catch(error => console.error('Error loading configurations:', error));
-        });
+        }
     </script>
+    
+
     <script>
         function downloadScript() {
             window.location.href = '/download_basecalling_script';

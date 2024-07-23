@@ -16,6 +16,7 @@
             background-color: #f8f9fa;
             font-family: Arial, sans-serif;
         }
+
         .navbar,
         .subnav {
             background-color: #fff;
@@ -59,7 +60,8 @@
                         <a class="nav-link active" href="#">Available Workflows</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/status">Analyses <span id="runningCount" class="badge bg-primary">2</span></a>
+                        <a class="nav-link" href="/status">Analyses <span id="runningCount"
+                                class="badge bg-primary">2</span></a>
                     </li>
                 </ul>
             </div>
@@ -72,8 +74,10 @@
                     aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item active"><a href="/phred-quality">Longueur Reads Configuration</a></li>
-                        <li class="breadcrumb-item active" aria-current="page"><a href="/history-reads-length">Historique</a>
+                        <li class="breadcrumb-item active"><a href="/phred-quality">Longueur Reads Configuration</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page"><a
+                                href="/history-reads-length">Historique</a>
                         </li>
                     </ol>
                 </nav>
@@ -82,12 +86,14 @@
         </div>
         <form id="configForm">
             <div class="mb-3">
-                <label for="input_dir" class="form-label">Sélectionnez votre fichier BAM qui est aligné, trié :</label>
-                <input type="text" class="form-control" id="input_dir" name="input_dir" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment/barcode01_aligned_sorted.bam" required>
+                <label for="input_file" class="form-label">Sélectionnez votre fichier BAM aligné, trié :</label>
+                <input type="text" class="form-control" id="input_file" name="input_file"
+                    placeholder="/data/fastq_pass/alignment/barcode01_aligned_sorted.bam" required>
             </div>
             <div class="mb-3">
-                <label for="output_dir" class="form-label">Sélectionnez votre dossier où vous voulez retrouver votre fichier de sortie :</label>
-                <input type="text" class="form-control" id="output_dir" name="output_dir" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment/GenomePilot" required>
+                <label for="output_dir" class="form-label">Sélectionnez votre dossier de sortie :</label>
+                <input type="text" class="form-control" id="output_dir" name="output_dir"
+                    placeholder="/data/fastq_pass/alignment/GenomePilot" required>
             </div>
             <div class="mb-3">
                 <label for="length_option" class="form-label">Choisissez l'option de longueur :</label>
@@ -97,14 +103,19 @@
                 </select>
             </div>
             <div class="mb-3" id="length_sup">
-                <label for="min_length" class="form-label">Sélectionnez la longueur minimale de vos reads (tout ceux en dessous de ce nombre seront supprimés) :</label>
-                <input type="text" class="form-control" id="min_length" name="min_length" placeholder="min_length" required>
+                <label for="min_length" class="form-label">Sélectionnez la longueur minimale de vos reads :</label>
+                <input type="text" class="form-control" id="min_length" name="min_length" placeholder="min_length"
+                    required>
             </div>
             <div class="mb-3" id="length_between" style="display: none;">
-                <label for="min_length_between" class="form-label">Sélectionnez la longueur minimale de vos reads :</label>
-                <input type="text" class="form-control" id="min_length_between" name="min_length_between" placeholder="min_length">
-                <label for="max_length_between" class="form-label mt-2">Sélectionnez la longueur maximale de vos reads :</label>
-                <input type="text" class="form-control" id="max_length_between" name="max_length_between" placeholder="max_length">
+                <label for="min_length_between" class="form-label">Sélectionnez la longueur minimale de vos reads
+                    :</label>
+                <input type="text" class="form-control" id="min_length_between" name="min_length_between"
+                    placeholder="min_length">
+                <label for="max_length_between" class="form-label mt-2">Sélectionnez la longueur maximale de vos reads
+                    :</label>
+                <input type="text" class="form-control" id="max_length_between" name="max_length_between"
+                    placeholder="max_length">
             </div>
             <button type="submit" class="btn btn-primary">Ajouter la configuration</button>
         </form>
@@ -120,6 +131,71 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchConfigurations();
+        });
+
+        document.getElementById('configForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/reads_length', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Configuration added:', data.configurations);
+                        updateConfigList(data.configurations); // Actualiser la liste après ajout
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error('Error adding configuration:', error));
+        });
+
+        function updateConfigList(configurations) {
+            const configList = document.getElementById('configList');
+            configList.innerHTML = ''; // Clear existing entries
+            configurations.forEach((config, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = `Config ${index + 1}: ${config.input_file} - ${config.output_dir}`;
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.className = 'btn btn-danger btn-sm float-right';
+                deleteBtn.onclick = function () { deleteConfiguration(index); };
+                li.appendChild(deleteBtn);
+                configList.appendChild(li);
+            });
+        }
+
+        function deleteConfiguration(index) {
+            fetch('/delete_config_reads_length', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ index })
+            }).then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        fetchConfigurations(); // Actualiser la liste après suppression
+                    } else {
+                        alert('Failed to delete configuration');
+                    }
+                })
+                .catch(error => console.error('Error deleting configuration:', error));
+        }
+
+        function fetchConfigurations() {
+            fetch('/get_configurations_reads_length')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.configurations) {
+                        updateConfigList(data.configurations);
+                    }
+                })
+                .catch(error => console.error('Error loading configurations:', error));
+        }
+
         function updateForm() {
             var option = document.getElementById("length_option").value;
             if (option === "sup") {
@@ -136,68 +212,6 @@
                 document.getElementById("max_length_between").required = true;
             }
         }
-    </script>
-    <script>
-        document.getElementById('configForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            fetch('/phred_quality', {
-                method: 'POST',
-                body: formData
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const configList = document.getElementById('configList');
-                        const newItem = document.createElement('li');
-                        newItem.className = 'list-group-item';
-                        newItem.textContent = `Input: ${formData.get('input_dir')}, Output: ${formData.get('output_dir')}`;
-                        configList.appendChild(newItem);
-                    } else {
-                        alert(data.message);
-                    }
-                });
-        });
-
-
-        function updateConfigList(configurations) {
-            const configList = document.getElementById('configList');
-            configList.innerHTML = ''; // Clear existing entries
-            configurations.forEach((config, index) => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.textContent = `Config ${index + 1}: ${config.output_dir} - ${config.input_dir}`;
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.className = 'btn btn-danger btn-sm float-right';
-                deleteBtn.onclick = function () { deleteConfiguration(index); };
-                li.appendChild(deleteBtn);
-                configList.appendChild(li);
-            });
-        }
-
-        function deleteConfiguration(index) {
-            fetch('/delete_config_phred_quality', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ index })
-            }).then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        updateConfigList(result.configurations);
-                    } else {
-                        alert('Failed to delete configuration');
-                    }
-                });
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('/get_configurations_phred_quality')
-                .then(response => response.json())
-                .then(configurations => {
-                    updateConfigList(configurations);
-                })
-                .catch(error => console.error('Error loading configurations:', error));
-        });
     </script>
     <script>
         function generateAndShowScript() {

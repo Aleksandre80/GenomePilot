@@ -32,8 +32,21 @@ def basecalling():
             "model": model,
             "kit_name": kit_name
         })
+        
+        configurations_basecalling_db = ConfigurationBasecalling(
+            base_output_dir=base_output_dir,
+            input_dir=input_dir,
+            ref_genome=ref_genome_path,
+            qs_scores=qs_scores,
+            cuda_device=cuda_device,
+            model=model,
+            kit_name=kit_name
+        )
+        db.session.add(configurations_basecalling_db)
+        db.session.commit()
+        
         flash('Configuration added successfully.', 'success')
-        return redirect(url_for('basecalling_bp.basecalling'))
+        return jsonify({'success': True, 'configurations': configurations_basecalling}), 200
 
     return render_template('index.html', configurations=configurations_basecalling)
 

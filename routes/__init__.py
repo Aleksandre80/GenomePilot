@@ -6,6 +6,10 @@ from .merge import merge_bp
 from .vcf import vcf_bp
 from .full_workflow import full_workflow_bp
 from .anomalie_structure import anomalie_structure_bp
+from .moyenne_reads import moyenne_reads_bp
+from .phred_quality import phred_quality_bp
+from .cible_reads import cible_reads_bp
+from .reads_length import reads_length_bp
 from .common import common_bp
 
 # Fonction pour enregistrer les Blueprints dans l'application Flask
@@ -16,3 +20,8 @@ def register_blueprints(app):
     app.register_blueprint(full_workflow_bp)
     app.register_blueprint(anomalie_structure_bp)
     app.register_blueprint(common_bp)
+    app.register_blueprint(moyenne_reads_bp)
+    app.register_blueprint(phred_quality_bp)
+    app.register_blueprint(cible_reads_bp)
+    app.register_blueprint(reads_length_bp)
+    

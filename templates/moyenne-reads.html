@@ -82,12 +82,16 @@
         </div>
         <form id="configForm">
             <div class="mb-3">
-                <label for="input_dir" class="form-label">Selectionnez votre fichier BAM qui est aligné, trié et indéxé :</label>
-                <input type="text" class="form-control" id="input_dir" name="input_dir" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​/barcode01_aligned_sorted.bam" required>
+                <label for="input_file" class="form-label">Selectionnez votre fichier BAM qui est aligné, trié et indéxé :</label>
+                <input type="text" class="form-control" id="input_file" name="input_file" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​/barcode01_aligned_sorted.bam" required>
             </div>
             <div class="mb-3">
                 <label for="output_dir" class="form-label">Selectionnez votre dossier où vous voulez retrouver votre fichier de sortie :</label>
                 <input type="text" class="form-control" id="output_dir" name="output_dir" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​/GenomePilot" required>
+            </div>
+            <div class="mb-3">
+                <label for="bed_file" class="form-label">Selectionnez votre fichier BED avec vos régions cibles :</label>
+                <input type="text" class="form-control" id="bed_file" name="bed_file" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​/regions.bed" required>
             </div>
             <button type="submit" class="btn btn-primary">Ajouter la configuration</button>
         </form>
@@ -103,6 +107,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchConfigurations();
+        });
+
         document.getElementById('configForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(this);
@@ -112,15 +120,13 @@
             }).then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const configList = document.getElementById('configList');
-                        const newItem = document.createElement('li');
-                        newItem.className = 'list-group-item';
-                        newItem.textContent = `Input: ${formData.get('input_dir')}, Output: ${formData.get('output_dir')}`;
-                        configList.appendChild(newItem);
+                        console.log('Configuration added:', data.configurations);
+                        fetchConfigurations(); // Actualiser la liste après ajout
                     } else {
                         alert(data.message);
                     }
-                });
+                })
+                .catch(error => console.error('Error adding configuration:', error));
         });
 
 
@@ -130,7 +136,7 @@
             configurations.forEach((config, index) => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item';
-                li.textContent = `Config ${index + 1}: ${config.output_dir} - ${config.input_dir}`;
+                li.textContent = `Config ${index + 1}: ${config.input_dir} - ${config.output_dir} - ${config.bed_file}`;
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Delete';
                 deleteBtn.className = 'btn btn-danger btn-sm float-right';
@@ -148,21 +154,22 @@
             }).then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        updateConfigList(result.configurations);
+                        fetchConfigurations(); // Actualiser la liste après suppression
                     } else {
                         alert('Failed to delete configuration');
                     }
-                });
+                })
+                .catch(error => console.error('Error deleting configuration:', error));
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
+        function fetchConfigurations() {
             fetch('/get_configurations_moyenne_reads')
                 .then(response => response.json())
                 .then(configurations => {
                     updateConfigList(configurations);
                 })
                 .catch(error => console.error('Error loading configurations:', error));
-        });
+        }
     </script>
     <script>
         function generateAndShowScript() {
