@@ -47,7 +47,7 @@ def generate_vcf_script():
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
+        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_dir']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
