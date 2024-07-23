@@ -47,7 +47,7 @@ def generate_vcf_script():
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
-        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_dir']))
+        output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
 
         script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
         script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
@@ -77,26 +77,26 @@ def download_vcf_script():
         log_file = f"{vcf_directory}/vcf_log.txt"
         report_file = f"{vcf_directory}/vcf_report.html"
 
-        script_content += f"mkdir -p {vcf_directory}\n"
+        script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
         output_vcf_path = os.path.join(vcf_directory, os.path.basename(config['output_vcf']))
 
-        script_content += f"samtools faidx {config['ref_genome']} >> \"{log_file}\" 2>&1\n"
-        script_content += f"samtools index {config['bam_file']} >> \"{log_file}\" 2>&1\n"
-        script_content += f"bcftools mpileup -Ou -f {config['ref_genome']} {config['bam_file']} | bcftools call -mv -Ob -o {output_vcf_path}.bcf >> \"{log_file}\" 2>&1\n"
-        script_content += f"bcftools index {output_vcf_path}.bcf >> \"{log_file}\" 2>&1\n"
-        script_content += f"bcftools view -Oz -o {output_vcf_path}.vcf.gz {output_vcf_path}.bcf >> \"{log_file}\" 2>&1\n"
-        script_content += f"tabix -p vcf {output_vcf_path}.vcf.gz >> \"{log_file}\" 2>&1\n"
-        script_content += f"gunzip -c {output_vcf_path}.vcf.gz > {output_vcf_path}.vcf >> \"{log_file}\" 2>&1\n"
-        script_content += f"rm -f {output_vcf_path}.bcf {output_vcf_path}.vcf.gz {output_vcf_path}.bcf.csi {output_vcf_path}.vcf.gz.tbi >> \"{log_file}\" 2>&1\n"
+        script_content += f"samtools faidx \"{config['ref_genome']}\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"samtools index \"{config['bam_file']}\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"bcftools mpileup -Ou -f \"{config['ref_genome']}\" \"{config['bam_file']}\" | bcftools call -mv -Ob -o \"{output_vcf_path}.bcf\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"bcftools index \"{output_vcf_path}.bcf\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"bcftools view -Oz -o \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"tabix -p vcf \"{output_vcf_path}.vcf.gz\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}.vcf\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"rm -f \"{output_vcf_path}.bcf\" \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf.csi\" \"{output_vcf_path}.vcf.gz.tbi\" >> \"{log_file}\" 2>&1\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Variant calling and file processing completed for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
 
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>VCF Log Report</title></head><body><div class=\"log-container\"><h1>VCF Log Report</h1>' > {report_file}\n"
         script_content += f"while IFS= read -r line; do\n"
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
-        script_content += f"done < {log_file}\n"
+        script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
 
     script_path = '/data/Script_Site/tmp/vcf_script.sh'
