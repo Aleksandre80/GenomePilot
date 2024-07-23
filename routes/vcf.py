@@ -147,7 +147,7 @@ def handle_script():
         db.session.commit()
         
         try:
-            script_path = '/data/Script_Site/tmp/bam_merge_script.sh'
+            script_path = '/data/Script_Site/tmp/vcf_script.sh'
             script_command = f"bash {script_path}"
             
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
