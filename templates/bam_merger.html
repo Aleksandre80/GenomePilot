@@ -16,6 +16,7 @@
             background-color: #f8f9fa;
             font-family: Arial, sans-serif;
         }
+
         .navbar,
         .subnav {
             background-color: #fff;
@@ -59,7 +60,8 @@
                         <a class="nav-link active" href="#">Available Workflows</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/status">Analyses <span id="runningCount" class="badge bg-primary">2</span></a>
+                        <a class="nav-link" href="/status">Analyses <span id="runningCount"
+                                class="badge bg-primary">2</span></a>
                     </li>
                 </ul>
             </div>
@@ -83,11 +85,16 @@
         <form id="configForm">
             <div class="mb-3">
                 <label for="input_dir" class="form-label">Selectionnez votre dossier de BAM à merger:</label>
-                <input type="text" class="form-control" id="input_dir" name="input_dir" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​" required>
+                <input type="text" class="form-control" id="input_dir" name="input_dir"
+                    placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​"
+                    required>
             </div>
             <div class="mb-3">
-                <label for="output_dir" class="form-label">Selectionnez votre dossier où vous voulez retrouver votre BAM mergé:</label>
-                <input type="text" class="form-control" id="output_dir" name="output_dir" placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​/merge" required>
+                <label for="output_dir" class="form-label">Selectionnez votre dossier où vous voulez retrouver votre BAM
+                    mergé:</label>
+                <input type="text" class="form-control" id="output_dir" name="output_dir"
+                    placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​/merge"
+                    required>
             </div>
             <button type="submit" class="btn btn-primary">Ajouter la configuration</button>
         </form>
@@ -168,7 +175,19 @@
         }
 
         function startScript() {
-            fetch('/start_merge_script')
+            const inputDir = document.getElementById('inputDir').value;
+            const outputDir = document.getElementById('outputDir').value;
+
+            fetch('/start_merge_script', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    input_dir: inputDir,
+                    output_dir: outputDir,
+                }),
+            })
                 .then(response => response.json())
                 .then(data => {
                     console.log('Script started:', data);

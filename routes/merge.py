@@ -110,37 +110,41 @@ def delete_configuration_merge():
     except IndexError:
         return jsonify(success=False, message="Configuration does not exist.")
 
-@merge_bp.route('/start_merge_script', methods=['GET','POST'])
+@merge_bp.route('/start_merge_script', methods=['GET', 'POST'])
 @role_requis('superadmin')
 def handle_script():
-    new_workflow = Workflow(name="BAM Merge", status="Running")
-    db.session.add(new_workflow)
-    db.session.commit()
-    
-    data = request.json
-    output_dir = data.get('output_dir')
-    input_dir = data.get('input_dir')
-    
-    if not all([input_dir, output_dir]):
-        return jsonify(success=False, message="Please specify both input and output directories.")
-    
-    script_command = f"bash /data/Script_Site/tmp/bam_merge_script.sh {output_dir} {input_dir}"
-    
-    try:
-        process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate()
+    if request.method == 'POST':
+        new_workflow = Workflow(name="BAM Merge", status="Running")
+        db.session.add(new_workflow)
+        db.session.commit()
         
-        report_file = f"{output_dir}/merge_report.html"
-        if os.path.exists(report_file):
-            new_workflow.status = "Completed"
-        else:
+        data = request.json
+        output_dir = data.get('output_dir')
+        input_dir = data.get('input_dir')
+        
+        if not all([input_dir, output_dir]):
+            return jsonify(success=False, message="Please specify both input and output directories.")
+        
+        script_command = f"bash /data/Script_Site/tmp/bam_merge_script.sh {output_dir} {input_dir}"
+        
+        try:
+            process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout, stderr = process.communicate()
+            
+            report_file = f"{output_dir}/merge_report.html"
+            if os.path.exists(report_file):
+                new_workflow.status = "Completed"
+            else:
+                new_workflow.status = "Failed"
+            
+            db.session.commit()
+
+        except Exception as e:
+            print(f"Error: {e}")
             new_workflow.status = "Failed"
-        
-        db.session.commit()
+            db.session.commit()
 
-    except Exception as e:
-        print(f"Error: {e}")
-        new_workflow.status = "Failed"
-        db.session.commit()
+        return jsonify(success=True, report=report_file)
+    
+    return jsonify(success=False, message="Invalid request method. Use POST.")
 
-    return jsonify(success=True, report=report_file)
