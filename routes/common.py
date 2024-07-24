@@ -14,7 +14,7 @@ def accueil():
 @common_bp.route('/status', methods=['GET', 'POST'])
 @role_requis('superadmin')
 def status():
-    workflows = Workflow.query.order_by(Workflow.launch_date.desc()).all()
+    workflows = Workflow.query.order_by(Workflow.start_time.desc()).all()
     # new_workflow = Workflow(name="Creation VCF", status="Running")
     # db.session.add(new_workflow)
     # db.session.commit()
