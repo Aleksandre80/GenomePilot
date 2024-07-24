@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify, session, redirec
 from models import Workflow
 from utils import role_requis, get_role_utilisateur
 import psutil
+from extensions import db
 
 common_bp = Blueprint('common_bp', __name__)
 
@@ -14,6 +15,9 @@ def accueil():
 @role_requis('superadmin')
 def status():
     workflows = Workflow.query.order_by(Workflow.launch_date.desc()).all()
+    # new_workflow = Workflow(name="Creation VCF", status="Running")
+    # db.session.add(new_workflow)
+    # db.session.commit()
     return render_template('status.html', workflows=workflows)
 
 @common_bp.route('/login', methods=['GET', 'POST'])

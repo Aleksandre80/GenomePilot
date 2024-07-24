@@ -42,14 +42,17 @@ def generate_bam_script():
     for config in configurations_merge:
         log_file = f"{config['output_dir']}/merge_log.txt"
         report_file = f"{config['output_dir']}/merge_report.html"
-        
+        status_file = f"{config['output_dir']}/merge_status.txt"
+
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
-        script_content += f"echo \"Starting merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"samtools merge \"{config['output_dir']}/merged.bam\" \"{config['input_dir']}\"/*.bam\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
-        script_content += f"    echo \"Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"completed\" > \"{status_file}\"\n"
         script_content += f"else\n"
-        script_content += f"    echo \"Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed\" > \"{status_file}\"\n"
         script_content += f"fi\n\n"
         
         # Generate HTML report
@@ -68,14 +71,17 @@ def download_bam_script():
     for config in configurations_merge:
         log_file = f"{config['output_dir']}/merge_log.txt"
         report_file = f"{config['output_dir']}/merge_report.html"
-        
+        status_file = f"{config['output_dir']}/merge_status.txt"
+
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"samtools merge \"{config['output_dir']}/merged.bam\" \"{config['input_dir']}\"/*.bam\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"completed\" > \"{status_file}\"\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed\" > \"{status_file}\"\n"
         script_content += f"fi\n\n"
         
         # Generate HTML report
@@ -125,20 +131,21 @@ def handle_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            # Assuming report_file path is stored in a way that it can be dynamically resolved
-            report_file = configurations_merge[-1]['output_dir'] + "/merge_report.html"
-            if os.path.exists(report_file):
-                new_workflow.status = "Completed"
+            status_file = configurations_merge[-1]['output_dir'] + "/merge_status.txt"
+            if os.path.exists(status_file):
+                with open(status_file, 'r') as file:
+                    status = file.read().strip()
+                new_workflow.status = "Completed" if status == "completed" else "Failed"
             else:
-                new_workflow.status = "Completed"
+                new_workflow.status = "Failed"
             
             db.session.commit()
 
         except Exception as e:
             print(f"Error: {e}")
-            new_workflow.status = "Completed"
+            new_workflow.status = "Failed"
             db.session.commit()
 
-        return jsonify(success=True, report=report_file)
+        return jsonify(success=True, report=new_workflow.status)
     
     return jsonify(success=False, message="Invalid request method. Use POST.")

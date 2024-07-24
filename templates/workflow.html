@@ -21,7 +21,6 @@
         .subnav {
             padding: 0.5rem 1rem;
             margin-top: -1px;
-            /* Aligns the subnav directly under the navbar */
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -40,6 +39,12 @@
             margin-bottom: 20px;
             border: none;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
         }
 
         .card-title {
@@ -48,6 +53,20 @@
 
         .card-text {
             font-size: 0.9rem;
+        }
+
+        .tools-used {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .card:hover .tools-used {
+            display: block;
+        }
+
+        .card-link:hover .card-title {
+            color: #004085;
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -86,7 +105,16 @@
                             <p class="card-text">Ce workflow prend en charge le déchiffrement des lectures brutes issues des
                                 appareils de séquençage à nanopores et leur classification en fonction des barcodes
                                 spécifiques à chaque échantillon. Il est essentiel pour distinguer les échantillons traités
-                                dans une même expérience et préparer les données pour des analyses ultérieures.</p>
+                                dans une même expérience et préparer les données pour des analyses ultérieures.
+                            </p>
+                            <div class="tools-used">
+                                <h6>Outils Utilisés :</h6>
+                                <ul>
+                                    <li>Dorado</li>
+                                    <li>Minimap2</li>
+                                    <li>Samtools</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -97,7 +125,14 @@
                             <p class="card-text">Ce workflow permet de fusionner plusieurs fichiers BAM en un seul. Cette
                                 étape est cruciale pour consolider les résultats de séquençage provenant de plusieurs
                                 réplicats ou de différents fragments d'un même échantillon, facilitant ainsi l'analyse
-                                globale des données.</p>
+                                globale des données.
+                            </p>
+                            <div class="tools-used">
+                                <h6>Outils Utilisés :</h6>
+                                <ul>
+                                    <li>Samtools</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -111,6 +146,15 @@
                                 l'identification des SNPs, des insertions, des délétions et d'autres variantes,
                                 essentiel pour les études de génomique comparative et les diagnostics.
                             </p>
+                            <div class="tools-used">
+                                <h6>Outils Utilisés :</h6>
+                                <ul>
+                                    <li>Samtools</li>
+                                    <li>BCFtools</li>
+                                    <li>Tabix</li>
+                                    <li>Gunzip</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -133,6 +177,12 @@
                             <p class="card-text">Ce workflow permet de détecter les anomalies de structure depuis un BAM trié et ressort le résultat
                                 dans un fichier VCF.
                             </p>
+                            <div class="tools-used">
+                                <h6>Outils Utilisés :</h6>
+                                <ul>
+                                    <li>Sniffles</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -143,6 +193,13 @@
                             <p class="card-text">Ce workflow permet de calculer la moyenne des reads des cibles depuis un fichier BAM trié et indéxé. Il vous faudra
                                 un fichier BED pour spécifier les régions cibles.
                             </p>
+                            <div class="tools-used">
+                                <h6>Outils Utilisés :</h6>
+                                <ul>
+                                    <li>bedtools</li>
+                                    <li>awk</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </a>
