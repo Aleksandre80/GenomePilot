@@ -113,6 +113,7 @@
                             <th scope="col" onclick="sortTable(0)">Name</th>
                             <th scope="col" onclick="sortTable(1)">Workflow</th>
                             <th scope="col" onclick="sortTable(2)">Created</th>
+                            <th scope="col" onclick="">Finished</th>
                             <th scope="col" onclick="sortTable(3)">Status</th>
                         </tr>
                     </thead>
@@ -121,7 +122,8 @@
                         <tr>
                             <td>{{ workflow.name }}</td>
                             <td>{{ workflow.name }}</td>
-                            <td>{{ workflow.launch_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>{{ workflow.start_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>{{ workflow.end_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                             <td>
                                 <div style="display: flex; align-items: center;">
                                     <span class="badge bg-{{ 'success' if workflow.status == 'Completed' else 'danger' if workflow.status == 'Failed' else 'secondary' }}">
