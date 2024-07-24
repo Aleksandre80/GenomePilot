@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, jsonify, make_response, s
 from extensions import db
 from models import ConfigurationMerge, Workflow
 from utils import role_requis
+from datetime import datetime
 
 merge_bp = Blueprint('merge_bp', __name__)
 
@@ -49,10 +50,10 @@ def generate_bam_script():
         script_content += f"samtools merge \"{config['output_dir']}/merged.bam\" \"{config['input_dir']}\"/*.bam\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"    echo \"completed\" > \"{status_file}\"\n"
+        script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"    echo \"failed\" > \"{status_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n\n"
         
         # Generate HTML report
@@ -63,6 +64,7 @@ def generate_bam_script():
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
     
     return jsonify(script=script_content)
+
 
 @merge_bp.route('/download_bam_script', methods=['GET'])
 @role_requis('superadmin')
@@ -78,10 +80,10 @@ def download_bam_script():
         script_content += f"samtools merge \"{config['output_dir']}/merged.bam\" \"{config['input_dir']}\"/*.bam\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"    echo \"completed\" > \"{status_file}\"\n"
+        script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"    echo \"failed\" > \"{status_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n\n"
         
         # Generate HTML report
@@ -120,7 +122,7 @@ def delete_configuration_merge():
 @role_requis('superadmin')
 def handle_script():
     if request.method == 'POST':
-        new_workflow = Workflow(name="BAM Merge", status="Running")
+        new_workflow = Workflow(name="BAM Merge", status="Running", start_time=datetime.utcnow())
         db.session.add(new_workflow)
         db.session.commit()
         
@@ -134,16 +136,20 @@ def handle_script():
             status_file = configurations_merge[-1]['output_dir'] + "/merge_status.txt"
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
-                    status = file.read().strip()
-                new_workflow.status = "Completed" if status == "completed" else "Failed"
+                    status_info = file.read().strip()
+                    status, end_time = status_info.split(' - ')
+                    new_workflow.status = "Completed" if status == "completed" else "Failed"
+                    new_workflow.end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
             else:
                 new_workflow.status = "Failed"
+                new_workflow.end_time = datetime.utcnow()
             
             db.session.commit()
 
         except Exception as e:
             print(f"Error: {e}")
             new_workflow.status = "Failed"
+            new_workflow.end_time = datetime.utcnow()
             db.session.commit()
 
         return jsonify(success=True, report=new_workflow.status)

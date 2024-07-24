@@ -79,9 +79,12 @@ class ConfigurationReadsLength(db.Model):
 
 class Workflow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    launch_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    status = db.Column(db.String(20), nullable=False, default='Pending')
+    name = db.Column(db.String(80), nullable=False)
+    status = db.Column(db.String(20), nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime)
+    output_dir = db.Column(db.String(200), nullable=False)
+
 
     def __repr__(self):
         return f"Workflow('{self.name}', '{self.launch_date}', '{self.status}')"
