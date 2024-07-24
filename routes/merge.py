@@ -122,7 +122,7 @@ def delete_configuration_merge():
 @role_requis('superadmin')
 def handle_script():
     if request.method == 'POST':
-        new_workflow = Workflow(name="BAM Merge", status="Running", start_time=datetime.utcnow())
+        new_workflow = Workflow(name="BAM Merge", status="Running", start_time=datetime.utcnow(), output_dir=configurations_merge[-1]['output_dir'])
         db.session.add(new_workflow)
         db.session.commit()
         
@@ -148,10 +148,12 @@ def handle_script():
 
         except Exception as e:
             print(f"Error: {e}")
-            new_workflow.status = "Failed"
-            new_workflow.end_time = datetime.utcnow()
+            workflow = Workflow.query.get(new_workflow.id)
+            workflow.status = "Failed"
+            workflow.end_time = datetime.utcnow()
             db.session.commit()
 
         return jsonify(success=True, report=new_workflow.status)
     
     return jsonify(success=False, message="Invalid request method. Use POST.")
+
