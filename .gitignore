@@ -1,0 +1,39 @@
+# Ignore SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignore database migration files (for example, Flask-Migrate)
+migrations/
+
+# Ignore virtual environment directories
+venv/
+env/
+
+# Ignore compiled files
+__pycache__/
+*.pyc
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore configuration files
+config.py
+.env
+
+# Ignore directories for local IDE configurations
+.vscode/
+.idea/
