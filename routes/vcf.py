@@ -178,6 +178,7 @@ def handle_vcf_script():
                     new_workflow.end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
             else:
                 new_workflow.status = "Failed"
+                print("not found")
                 new_workflow.end_time = datetime.utcnow()
             
             db.session.commit()
