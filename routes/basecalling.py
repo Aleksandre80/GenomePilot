@@ -118,7 +118,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir'
 def download_basecalling_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_basecalling:
-                log_file = f"{config['base_output_dir']}/basecalling_log.txt"
+        log_file = f"{config['base_output_dir']}/basecalling_log.txt"
         report_file = f"{config['base_output_dir']}/basecalling_report.html"
         status_file = f"{config['base_output_dir']}/basecalling_status.txt"
 
