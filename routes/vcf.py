@@ -6,6 +6,7 @@ from utils import role_requis
 import subprocess
 import shlex
 import json
+from datetime import datetime
 
 vcf_bp = Blueprint('vcf_bp', __name__)
 
@@ -44,6 +45,7 @@ def generate_vcf_script():
         vcf_directory = os.path.join(config['output_dir'], "vcf")
         log_file = f"{vcf_directory}/vcf_log.txt"
         report_file = f"{vcf_directory}/vcf_report.html"
+        status_file = f"{vcf_directory}/vcf_status.txt"
         bam_basename = os.path.basename(config['bam_file']).replace('.bam', '')
         output_vcf_path = os.path.join(vcf_directory, f"{bam_basename}.vcf")
 
@@ -62,6 +64,12 @@ def generate_vcf_script():
         script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}\"\n"
         script_content += f"rm -f \"{output_vcf_path}.bcf\" \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf.csi\" \"{output_vcf_path}.vcf.gz.tbi\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished VCF processing for {config['bam_file']}\" >> \"{log_file}\"\n"
+        
+        script_content += f"if [ -f \"{output_vcf_path}\" ]; then\n"
+        script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"else\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"fi\n"
 
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>VCF Log Report</title></head><body><div class=\"log-container\"><h1>VCF Log Report</h1>' > \"{report_file}\"\n"
@@ -78,6 +86,7 @@ def generate_vcf_script():
 
 
 
+
 @vcf_bp.route('/download_vcf_script', methods=['GET'])
 @role_requis('superadmin')
 def download_vcf_script():
@@ -86,6 +95,7 @@ def download_vcf_script():
         vcf_directory = os.path.join(config['output_dir'], "vcf")
         log_file = f"{vcf_directory}/vcf_log.txt"
         report_file = f"{vcf_directory}/vcf_report.html"
+        status_file = f"{vcf_directory}/vcf_status.txt"
         bam_basename = os.path.basename(config['bam_file']).replace('.bam', '')
         output_vcf_path = os.path.join(vcf_directory, f"{bam_basename}.vcf")
 
@@ -104,6 +114,12 @@ def download_vcf_script():
         script_content += f"gunzip -c \"{output_vcf_path}.vcf.gz\" > \"{output_vcf_path}\"\n"
         script_content += f"rm -f \"{output_vcf_path}.bcf\" \"{output_vcf_path}.vcf.gz\" \"{output_vcf_path}.bcf.csi\" \"{output_vcf_path}.vcf.gz.tbi\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Finished VCF processing for {config['bam_file']}\" >> \"{log_file}\"\n"
+        
+        script_content += f"if [ -f \"{output_vcf_path}\" ]; then\n"
+        script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"else\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"fi\n"
 
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>VCF Log Report</title></head><body><div class=\"log-container\"><h1>VCF Log Report</h1>' > \"{report_file}\"\n"
@@ -140,9 +156,9 @@ def delete_configuration_vcf():
 
 @vcf_bp.route('/start_vcf_script', methods=['GET', 'POST'])
 @role_requis('superadmin')
-def handle_script():
+def handle_vcf_script():
     if request.method == 'POST':
-        new_workflow = Workflow(name="Creation VCF", status="Running")
+        new_workflow = Workflow(name="VCF Generation", status="Running", start_time=datetime.utcnow(), output_dir=configurations_vcf[-1]['output_dir'])
         db.session.add(new_workflow)
         db.session.commit()
         
@@ -153,20 +169,26 @@ def handle_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            # Assuming report_file path is stored in a way that it can be dynamically resolved
-            report_file = configurations_vcf[-1]['output_dir'] + "/vcf_report.html"
-            if os.path.exists(report_file):
-                new_workflow.status = "Completed"
+            status_file = configurations_vcf[-1]['output_dir'] + "/vcf_status.txt"
+            if os.path.exists(status_file):
+                with open(status_file, 'r') as file:
+                    status_info = file.read().strip()
+                    status, end_time = status_info.split(' - ')
+                    new_workflow.status = "Completed" if status == "completed" else "Failed"
+                    new_workflow.end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
             else:
-                new_workflow.status = "Completed"
+                new_workflow.status = "Failed"
+                new_workflow.end_time = datetime.utcnow()
             
             db.session.commit()
 
         except Exception as e:
             print(f"Error: {e}")
-            new_workflow.status = "Completed"
+            workflow = Workflow.query.get(new_workflow.id)
+            workflow.status = "Failed"
+            workflow.end_time = datetime.utcnow()
             db.session.commit()
 
-        return jsonify(success=True, report=report_file)
+        return jsonify(success=True, report=new_workflow.status)
     
     return jsonify(success=False, message="Invalid request method. Use POST.")
