@@ -122,12 +122,12 @@
                         <tr>
                             <td>{{ workflow.name }}</td>
                             <td>{{ workflow.name }}</td>
-                            <td>{{ workflow.start_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                            <td>{{ workflow.end_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>{{ workflow.start_time.strftime('%Y-%m-%d %H:%M:%S') if workflow.start_time else 'N/A' }}</td>
+                            <td>{{ workflow.end_time.strftime('%Y-%m-%d %H:%M:%S') if workflow.end_time else 'N/A' }}</td>
                             <td>
                                 <div style="display: flex; align-items: center;">
                                     <span class="badge bg-{{ 'success' if workflow.status == 'Completed' else 'danger' if workflow.status == 'Failed' else 'secondary' }}">
-                                        {{ workflow.status }}
+                                        {{ workflow.status | default('Unknown') }}
                                     </span>
                                     {% if workflow.status == 'Running' %}
                                         <l-helix size="45" speed="2.5" color="#0d6efd" style="transform: rotate(90deg); margin-left: 10px;"></l-helix>
