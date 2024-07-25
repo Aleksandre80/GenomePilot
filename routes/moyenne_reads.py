@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import shlex
+from datetime import datetime
 
 moyenne_reads_bp = Blueprint('moyenne_reads_bp', __name__)
 
@@ -46,6 +47,7 @@ def generate_moyenne_reads_script():
     for config in configurations_moyenne_reads:
         log_file = f"{config['output_dir']}/moyenne_reads_log.txt"
         report_file = f"{config['output_dir']}/moyenne_reads_report.html"
+        status_file = f"{config['output_dir']}/moyenne_reads_status.txt"
         coverage_txt = f"{config['output_dir']}/coverage.txt"
         coverage_csv = f"{config['output_dir']}/coverage.csv"
 
@@ -65,11 +67,14 @@ def generate_moyenne_reads_script():
         
         script_content += f"    if [ -f \"{coverage_csv}\" ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to coverage.csv completed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    else\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to coverage.csv failed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    fi\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average failed. coverage.txt not generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
         # Generate HTML report
@@ -86,6 +91,7 @@ def generate_moyenne_reads_script():
 
 
 
+
 @moyenne_reads_bp.route('/download_moyenne_reads_script', methods=['GET'])
 @role_requis('superadmin')
 def download_moyenne_reads_script():
@@ -93,6 +99,7 @@ def download_moyenne_reads_script():
     for config in configurations_moyenne_reads:
         log_file = f"{config['output_dir']}/moyenne_reads_log.txt"
         report_file = f"{config['output_dir']}/moyenne_reads_report.html"
+        status_file = f"{config['output_dir']}/moyenne_reads_status.txt"
         coverage_txt = f"{config['output_dir']}/coverage.txt"
         coverage_csv = f"{config['output_dir']}/coverage.csv"
 
@@ -112,11 +119,14 @@ def download_moyenne_reads_script():
         
         script_content += f"    if [ -f \"{coverage_csv}\" ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to coverage.csv completed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    else\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to coverage.csv failed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    fi\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average failed. coverage.txt not generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
         # Generate HTML report
@@ -151,9 +161,9 @@ def delete_configuration_moyenne_reads():
 
 @moyenne_reads_bp.route('/start_moyenne_reads_script', methods=['GET', 'POST'])
 @role_requis('superadmin')
-def handle_script():
+def handle_moyenne_reads_script():
     if request.method == 'POST':
-        new_workflow = Workflow(name="Calcul moyenne de reads", status="Running")
+        new_workflow = Workflow(name="Calculating Reads Average", status="Running", start_time=datetime.utcnow(), output_dir=configurations_moyenne_reads[-1]['output_dir'])
         db.session.add(new_workflow)
         db.session.commit()
         
@@ -164,20 +174,26 @@ def handle_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            # Assuming report_file path is stored in a way that it can be dynamically resolved
-            report_file = configurations_moyenne_reads[-1]['output_dir'] + "/moyenne_reads_report.html"
-            if os.path.exists(report_file):
-                new_workflow.status = "Completed"
+            status_file = configurations_moyenne_reads[-1]['output_dir'] + "/moyenne_reads_status.txt"
+            if os.path.exists(status_file):
+                with open(status_file, 'r') as file:
+                    status_info = file.read().strip()
+                    status, end_time = status_info.split(' - ')
+                    new_workflow.status = "Completed" if status == "completed" else "Failed"
+                    new_workflow.end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
             else:
-                new_workflow.status = "Completed"
+                new_workflow.status = "Failed"
+                new_workflow.end_time = datetime.utcnow()
             
             db.session.commit()
 
         except Exception as e:
             print(f"Error: {e}")
-            new_workflow.status = "Completed"
+            workflow = Workflow.query.get(new_workflow.id)
+            workflow.status = "Failed"
+            workflow.end_time = datetime.utcnow()
             db.session.commit()
 
-        return jsonify(success=True, report=report_file)
+        return jsonify(success=True, report=new_workflow.status)
     
     return jsonify(success=False, message="Invalid request method. Use POST.")
