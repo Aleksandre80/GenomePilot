@@ -169,7 +169,7 @@ def handle_vcf_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            status_file = configurations_vcf[-1]['output_dir'] + "/vcf_status.txt"
+            status_file = configurations_vcf[-1]['output_dir'] + "/vcf/vcf_status.txt"
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
                     status_info = file.read().strip()
