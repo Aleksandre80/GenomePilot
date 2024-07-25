@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import shlex
+from datetime import datetime
 
 basecalling_bp = Blueprint('basecalling_bp', __name__)
 
@@ -55,13 +56,14 @@ def basecalling():
     return render_template('index.html', configurations=configurations_basecalling)
 
 @basecalling_bp.route('/generate_script', methods=['GET'])
-@role_requis('superadmin') 
+@role_requis('superadmin')
 def generate_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_basecalling:
         log_file = f"{config['base_output_dir']}/basecalling_log.txt"
         report_file = f"{config['base_output_dir']}/basecalling_report.html"
-        
+        status_file = f"{config['base_output_dir']}/basecalling_status.txt"
+
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
         
         qs_scores_list = config['qs_scores'].split()
@@ -88,6 +90,12 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir'
             script_content += f"    samtools index \"$bam_file\"\n"
             script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for ${{bam_file}}\" >> \"{log_file}\"\n"
             script_content += "done\n"
+    
+    script_content += f"if [ $? -eq 0 ]; then\n"
+    script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+    script_content += f"else\n"
+    script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+    script_content += f"fi\n"
     
     script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - All processes are complete.\" >> \"{log_file}\"\n"
     
@@ -104,14 +112,16 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir'
     return jsonify(script=escaped_script_content)
 
 
+
 @basecalling_bp.route('/download_basecalling_script', methods=['GET'])
 @role_requis('superadmin')
 def download_basecalling_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_basecalling:
-        log_file = f"{config['base_output_dir']}/basecalling_log.txt"
+                log_file = f"{config['base_output_dir']}/basecalling_log.txt"
         report_file = f"{config['base_output_dir']}/basecalling_report.html"
-        
+        status_file = f"{config['base_output_dir']}/basecalling_status.txt"
+
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
         
         qs_scores_list = config['qs_scores'].split()
@@ -138,6 +148,12 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir'
             script_content += f"    samtools index \"$bam_file\"\n"
             script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for ${{bam_file}}\" >> \"{log_file}\"\n"
             script_content += "done\n"
+    
+    script_content += f"if [ $? -eq 0 ]; then\n"
+    script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+    script_content += f"else\n"
+    script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+    script_content += f"fi\n"
     
     script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - All processes are complete.\" >> \"{log_file}\"\n"
     
@@ -173,9 +189,9 @@ def delete_configuration_basecalling():
     
 @basecalling_bp.route('/start_script', methods=['GET', 'POST'])
 @role_requis('superadmin')
-def handle_script():
+def handle_basecalling_script():
     if request.method == 'POST':
-        new_workflow = Workflow(name="Basecalling + demultiplexage", status="Running")
+        new_workflow = Workflow(name="Basecalling", status="Running", start_time=datetime.utcnow(), output_dir=configurations_basecalling[-1]['base_output_dir'])
         db.session.add(new_workflow)
         db.session.commit()
         
@@ -186,20 +202,26 @@ def handle_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            # Assuming report_file path is stored in a way that it can be dynamically resolved
-            report_file = configurations_basecalling[-1]['output_dir'] + "/basecalling_report.html"
-            if os.path.exists(report_file):
-                new_workflow.status = "Completed"
+            status_file = configurations_basecalling[-1]['base_output_dir'] + "/basecalling_status.txt"
+            if os.path.exists(status_file):
+                with open(status_file, 'r') as file:
+                    status_info = file.read().strip()
+                    status, end_time = status_info.split(' - ')
+                    new_workflow.status = "Completed" if status == "completed" else "Failed"
+                    new_workflow.end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
             else:
-                new_workflow.status = "Completed"
+                new_workflow.status = "Failed"
+                new_workflow.end_time = datetime.utcnow()
             
             db.session.commit()
 
         except Exception as e:
             print(f"Error: {e}")
-            new_workflow.status = "Completed"
+            workflow = Workflow.query.get(new_workflow.id)
+            workflow.status = "Failed"
+            workflow.end_time = datetime.utcnow()
             db.session.commit()
 
-        return jsonify(success=True, report=report_file)
+        return jsonify(success=True, report=new_workflow.status)
     
     return jsonify(success=False, message="Invalid request method. Use POST.")
