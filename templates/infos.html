@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPI2ME Labs Inspired Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('/static/img/DALL·E\ 2024-07-26\ 11.39.04\ -\ A\ highly\ detailed\ and\ long\ helical\ strand\ of\ DNA\,\ rendered\ in\ a\ realistic\ and\ scientific\ style.\ The\ DNA\ strand\ should\ have\ a\ smooth\,\ glossy\ appearance.webp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            /* Prevents body scroll */
+        }
+
+        .navbar,
+        .subnav {
+            background-color: #fff;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .subnav {
+            padding: 0.5rem 1rem;
+            margin-top: -1px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-link.active {
+            border-bottom: 3px solid blue;
+            color: blue;
+        }
+
+        .scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-section h2 {
+            color: #0056b3;
+        }
+
+        .info-section a {
+            text-decoration: none;
+            color: #0056b3;
+        }
+
+        .info-section a:hover {
+            text-decoration: underline;
+            color: #004085;
+        }
+
+        .accordion-button:not(.collapsed) {
+            color: #0056b3;
+            background-color: #e9ecef;
+        }
+
+        .accordion-button:focus {
+            border-color: #0056b3;
+            box-shadow: none;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            background-color: rgba(252, 252, 252, 0.781);
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            color: #0056b3;
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+        }
+
+        .badge-custom {
+            background-color: #0056b3;
+            color: #fff;
+        }
+
+        .icon-large {
+            font-size: 2rem;
+        }
+
+        .icon-link {
+            color: #0056b3;
+            text-decoration: none;
+        }
+
+        .icon-link:hover {
+            color: #004085;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">GenomePilot</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" aria-current="page" href="/">Installed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Available Workflows</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/status">Analyses <span id="runningCount"
+                                class="badge bg-primary">2</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="scroll-container">
+        <div class="container">
+            <div class="info-section">
+                <h2>Bienvenue sur GenomePilot</h2>
+                <p>GenomePilot est une application puissante permettant de créer et d'exécuter divers pipelines pour
+                    analyser les données générées par les séquenceurs nanopore. Que vous ayez besoin de déchiffrer des
+                    lectures brutes, de fusionner des fichiers BAM, ou de créer des fichiers VCF, GenomePilot simplifie
+                    chaque étape du processus.</p>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <a href="https://aleksandre80.gitbook.io/untitled" target="_blank" class="icon-link">
+                                    <i class="fas fa-book icon-large"></i>
+                                    <h5 class="card-title">Documentation</h5>
+                                </a>
+                                <p class="card-text">Consultez notre GitBook pour une documentation complète et des
+                                    guides sur l'utilisation de GenomePilot.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <a href="https://github.com/aleksandre80/CHU-WeppApp" target="_blank" class="icon-link">
+                                    <i class="fab fa-github icon-large"></i>
+                                    <h5 class="card-title">Code Source</h5>
+                                </a>
+                                <p class="card-text">Le code source de GenomePilot est disponible sur GitHub. Contribuez
+                                    au développement ou explorez le code.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion -->
+                <div class="accordion" id="accordionExample">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Étape 1 : Configuration du pipeline <span class="badge badge-custom ms-2">1</span>
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
+                            data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <p>Dans cette étape, vous sélectionnez et configurez le pipeline à partir de notre
+                                    interface. Renseignez les paramètres requis dans les champs de saisie, comme le
+                                    fichier d'entrée, le répertoire de sortie, et les options spécifiques au pipeline.
+                                </p>
+                                <img src="/static/img/params.png" class="img-fluid mt-3" alt="Configuration Screenshot">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Étape 2 : Génération du script et Téléchargement<span
+                                    class="badge badge-custom ms-2">2</span>
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
+                            data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#scriptModal">
+                                    Sécurité
+                                </button>
+                                <!-- Modal -->
+                                <div class="modal fade" id="scriptModal" tabindex="-1"
+                                    aria-labelledby="scriptModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="scriptModalLabel">Sécurité du Script</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Pour garantir la sécurité de votre système, GenomePilot utilise deux
+                                                    fonctions distinctes pour gérer les scripts :</p>
+                                                <ul>
+                                                    <li><strong>Afficher le résultat du script :</strong> Cette option
+                                                        permet de voir le contenu du script généré directement dans
+                                                        l'application. Le contenu affiché à l'écran n'est en aucun cas
+                                                        relié au téléchargement du script. Cela garantit la sécurité si
+                                                        l'utilisateur parvient à modifier le contenu.</li>
+                                                    <li><strong>Télécharger le fichier bash :</strong> Cette option
+                                                        permet de télécharger le script généré sur votre machine et sur
+                                                        la machine distante en même temps.</li>
+                                                </ul>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Fermer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p>Une fois les paramètres configurés, un script bash est automatiquement généré. Ce
+                                    script contient toutes les commandes nécessaires pour exécuter le pipeline sur vos
+                                    données.</p>
+                                <img src="/static/img/bash.png" class="img-fluid mt-3"
+                                    alt="Script Generation Screenshot">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Étape 3 : Exécution du script <span class="badge badge-custom ms-2">3</span>
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
+                            data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <p>Lorsque l'utilisateur clique sur le bouton "Lancer le script sur la machine", cela
+                                    déclenche l'exécution du script via subprocess.
+
+                                    subprocess permet de lancer le script de manière isolée, empêchant ainsi toute
+                                    interférence avec d'autres scripts en cours d'exécution. De plus, subprocess n'ouvre
+                                    pas d'interface de terminal visible, ce qui évite toute interruption accidentelle du
+                                    processus.
+
+                                    En complément, shlex est utilisé pour analyser la commande du script. Cette étape
+                                    est cruciale car elle empêche l'injection de commandes supplémentaires, garantissant
+                                    ainsi un niveau de sécurité élevé. Cela signifie que les commandes sont exécutées
+                                    exactement comme prévu, sans possibilité de modification malveillante. </p>
+                                <!-- <img src="path/to/execution-screenshot.png" class="img-fluid mt-3"
+                                    alt="Script Execution Screenshot"> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Étape 4 : Suivi et rapport <span class="badge badge-custom ms-2">4</span>
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"
+                            data-bs-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <p>Pendant l'exécution du script, les logs sont enregistrés dans un fichier texte situé
+                                    dans le dossier de sortie. Cela permet de suivre l'avancement du script et de
+                                    diagnostiquer les éventuelles erreurs. À la fin de l'exécution, un rapport HTML est
+                                    généré, accompagné d'un autre fichier texte indiquant si le script a été "completed"
+                                    (terminé avec succès) ou "failed" (échec). Ces fichiers fournissent une traçabilité
+                                    complète et détaillée de l'exécution du script, facilitant ainsi le contrôle qualité
+                                    et le dépannage. Le site lit ce dernier fichier pour afficher le résultat de réussite et l'heure d'acheminement dans l'onglet statut.</p>
+                                <!-- <img src="path/to/report-screenshot.png" class="img-fluid mt-3" alt="Report Screenshot"> -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Add any additional content here -->
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        document.getElementById('viewScriptBtn').addEventListener('click', function () {
+            // Simulate fetching and displaying the script content
+            document.getElementById('scriptContent').textContent = '# Contenu du script bash généré\n\n';
+            document.getElementById('scriptOutput').style.display = 'block';
+        });
+
+        document.getElementById('downloadScriptBtn').addEventListener('click', function () {
+            // Simulate script download
+            alert('Le script bash sera téléchargé.');
+        });
+    </script>
+</body>
+
+</html>

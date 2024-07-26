@@ -20,6 +20,11 @@ def status():
     # db.session.commit()
     return render_template('status.html', workflows=workflows)
 
+@common_bp.route('/infos')
+def infos():
+    return render_template('infos.html')
+    
+
 @common_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':

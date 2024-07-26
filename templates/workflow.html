@@ -8,8 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-image: url('/static/img/DALL·E\ 2024-07-26\ 11.39.04\ -\ A\ highly\ detailed\ and\ long\ helical\ strand\ of\ DNA\,\ rendered\ in\ a\ realistic\ and\ scientific\ style.\ The\ DNA\ strand\ should\ have\ a\ smooth\,\ glossy\ appearance.webp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
             font-family: Arial, sans-serif;
+            overflow: hidden; /* Prevents body scroll */
         }
 
         .navbar,
@@ -31,8 +39,10 @@
             color: blue;
         }
 
-        .container {
-            margin-top: 20px;
+        .scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
         }
 
         .card {
@@ -40,6 +50,7 @@
             border: none;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s, box-shadow 0.3s;
+            background-color: rgba(252, 252, 252, 0.781);
         }
 
         .card:hover {
@@ -68,6 +79,27 @@
             color: #004085;
             text-decoration: underline;
         }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-section h2 {
+            color: #0056b3;
+        }
+
+        .info-section a {
+            text-decoration: none;
+            color: #0056b3;
+        }
+
+        .info-section a:hover {
+            text-decoration: underline;
+            color: #004085;
+        }
     </style>
 </head>
 
@@ -75,8 +107,7 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">GenomePilot</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -94,161 +125,164 @@
             </div>
         </div>
     </nav>
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <h1 class="mb-4">Workflows</h1>
-                <a href="/basecalling" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Basecalling + demultiplexing</h5>
-                            <p class="card-text">Ce workflow prend en charge le déchiffrement des lectures brutes issues des
-                                appareils de séquençage à nanopores et leur classification en fonction des barcodes
-                                spécifiques à chaque échantillon. Il est essentiel pour distinguer les échantillons traités
-                                dans une même expérience et préparer les données pour des analyses ultérieures.
-                            </p>
-                            <div class="tools-used">
-                                <h6>Outils Utilisés :</h6>
-                                <ul>
-                                    <li>Dorado</li>
-                                    <li>Minimap2</li>
-                                    <li>Samtools</li>
-                                </ul>
+    <div class="scroll-container">
+        <div class="container">
+            <div class="info-section">
+                <h2>Bienvenue sur GenomePilot</h2>
+                <p>GenomePilot est une application puissante permettant de créer et d'exécuter divers pipelines pour analyser les données générées par les séquenceurs nanopore. Que vous ayez besoin de déchiffrer des lectures brutes, de fusionner des fichiers BAM, ou de créer des fichiers VCF, GenomePilot simplifie chaque étape du processus.</p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Documentation</h5>
+                                <p class="card-text">Consultez notre <a href="https://aleksandre80.gitbook.io/untitled" target="_blank">GitBook</a> pour une documentation complète et des guides sur l'utilisation de GenomePilot.</p>
                             </div>
                         </div>
                     </div>
-                </a>
-                <a href="/bam_merger" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Merge de BAM</h5>
-                            <p class="card-text">Ce workflow permet de fusionner plusieurs fichiers BAM en un seul. Cette
-                                étape est cruciale pour consolider les résultats de séquençage provenant de plusieurs
-                                réplicats ou de différents fragments d'un même échantillon, facilitant ainsi l'analyse
-                                globale des données.
-                            </p>
-                            <div class="tools-used">
-                                <h6>Outils Utilisés :</h6>
-                                <ul>
-                                    <li>Samtools</li>
-                                </ul>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Code Source</h5>
+                                <p class="card-text">Le code source de GenomePilot est disponible sur <a href="https://github.com/your-repo" target="_blank">GitHub</a>. Contribuez au développement ou explorez le code.</p>
                             </div>
                         </div>
                     </div>
-                </a>
-                <a href="/vcf_creator" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Création de VCF</h5>
-                            <p class="card-text">
-                                Ce workflow transforme les fichiers BAM en fichiers VCF, qui contiennent des
-                                informations sur les variations génétiques par rapport à une référence. Cela inclut
-                                l'identification des SNPs, des insertions, des délétions et d'autres variantes,
-                                essentiel pour les études de génomique comparative et les diagnostics.
-                            </p>
-                            <div class="tools-used">
-                                <h6>Outils Utilisés :</h6>
-                                <ul>
-                                    <li>Samtools</li>
-                                    <li>BCFtools</li>
-                                    <li>Tabix</li>
-                                    <li>Gunzip</li>
-                                </ul>
+                    <!-- <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Support</h5>
+                                <p class="card-text">Besoin d'aide ? Consultez notre <a href="https://your-gitbook-link" target="_blank">section support</a> sur GitBook ou rejoignez notre communauté sur <a href="https://discord.com" target="_blank">Discord</a>.</p>
                             </div>
                         </div>
-                    </div>
-                </a>
-                <a href="/full_workflow" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Du Basecalling au VCF</h5>
-                            <p class="card-text">Ce workflow intégré couvre tout le processus, depuis le basecalling jusqu'à
-                                la création de fichiers VCF. Il combine les étapes de basecalling, de démultiplexage, de
-                                fusion de fichiers BAM et de création de VCF pour fournir un chemin complet du séquençage à
-                                l'analyse des variantes. Idéal pour les projets nécessitant une analyse complète à partir de
-                                données brutes.</p>
-                        </div>
-                    </div>
-                </a>
-                <a href="/anomalie_structure" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Anomalie de Structure</h5>
-                            <p class="card-text">Ce workflow permet de détecter les anomalies de structure depuis un BAM trié et ressort le résultat
-                                dans un fichier VCF.
-                            </p>
-                            <div class="tools-used">
-                                <h6>Outils Utilisés :</h6>
-                                <ul>
-                                    <li>Sniffles</li>
-                                </ul>
+                    </div> -->
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="mb-4">Workflows</h1>
+                    <a href="/basecalling" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Basecalling + demultiplexing</h5>
+                                <p class="card-text">Ce workflow prend en charge le déchiffrement des lectures brutes issues des appareils de séquençage à nanopores et leur classification en fonction des barcodes spécifiques à chaque échantillon. Il est essentiel pour distinguer les échantillons traités dans une même expérience et préparer les données pour des analyses ultérieures.</p>
+                                <div class="tools-used">
+                                    <h6>Outils Utilisés :</h6>
+                                    <ul>
+                                        <li>Dorado</li>
+                                        <li>Minimap2</li>
+                                        <li>Samtools</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </a>
-                <a href="/moyenne_reads" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Calculer la moyenne des reads des cibles</h5>
-                            <p class="card-text">Ce workflow permet de calculer la moyenne des reads des cibles depuis un fichier BAM trié et indéxé. Il vous faudra
-                                un fichier BED pour spécifier les régions cibles.
-                            </p>
-                            <div class="tools-used">
-                                <h6>Outils Utilisés :</h6>
-                                <ul>
-                                    <li>bedtools</li>
-                                    <li>awk</li>
-                                </ul>
+                    </a>
+                    <a href="/bam_merger" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Merge de BAM</h5>
+                                <p class="card-text">Ce workflow permet de fusionner plusieurs fichiers BAM en un seul. Cette étape est cruciale pour consolider les résultats de séquençage provenant de plusieurs réplicats ou de différents fragments d'un même échantillon, facilitant ainsi l'analyse globale des données.</p>
+                                <div class="tools-used">
+                                    <h6>Outils Utilisés :</h6>
+                                    <ul>
+                                        <li>Samtools</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </a>
-                <a href="/cible_reads" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Filtrage des reads selon les régions d'intérêt</h5>
-                            <p class="card-text">Ce workflow permet de filtrer les reads selon les régions d'intérêt depuis un fichier BAM trié et indéxé. Il vous faudra
-                                un fichier BED pour spécifier les régions d'intérêt.
-                            </p>
-                            <div class="tools-used">
-                                <h6>Outils Utilisés :</h6>
-                                <ul>
-                                    <li>samtools</li>
-                                </ul>
+                    </a>
+                    <a href="/vcf_creator" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Création de VCF</h5>
+                                <p class="card-text">Ce workflow transforme les fichiers BAM en fichiers VCF, qui contiennent des informations sur les variations génétiques par rapport à une référence. Cela inclut l'identification des SNPs, des insertions, des délétions et d'autres variantes, essentiel pour les études de génomique comparative et les diagnostics.</p>
+                                <div class="tools-used">
+                                    <h6>Outils Utilisés :</h6>
+                                    <ul>
+                                        <li>Samtools</li>
+                                        <li>BCFtools</li>
+                                        <li>Tabix</li>
+                                        <li>Gunzip</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </a>
-                <a href="/reads_length" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Filtrage des reads selon leur longueur</h5>
-                            <p class="card-text">Ce workflow permet de filtrer les reads selon leur longueur depuis un fichier BAM trié et indéxé. Cela est utile lorsque vous avez
-                                beaucoup de reads sur Alamut et que beaucoup d'entre eux ont une longueur qui ne vous intéresse pas.
-                            </p>
+                    </a>
+                    <a href="/full_workflow" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Du Basecalling au VCF</h5>
+                                <p class="card-text">Ce workflow intégré couvre tout le processus, depuis le basecalling jusqu'à la création de fichiers VCF. Il combine les étapes de basecalling, de démultiplexage, de fusion de fichiers BAM et de création de VCF pour fournir un chemin complet du séquençage à l'analyse des variantes. Idéal pour les projets nécessitant une analyse complète à partir de données brutes.</p>
+                            </div>
                         </div>
-                    </div>
-                </a>
-                <a href="/phred_quality" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Filtrage des reads selon le phred quality d'une position génomique</h5>
-                            <p class="card-text">Ce workflow permet de filtrer les reads selon le phred quality d'une position génomique depuis un fichier BAM. Cela est utilise 
-                                lorsque vous avez beaucoup de reads sur Alamut et que beaucoup d'entre eux ont un phred quality faible.
-                            </p>
+                    </a>
+                    <a href="/anomalie_structure" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Anomalie de Structure</h5>
+                                <p class="card-text">Ce workflow permet de détecter les anomalies de structure depuis un BAM trié et ressort le résultat dans un fichier VCF.</p>
+                                <div class="tools-used">
+                                    <h6>Outils Utilisés :</h6>
+                                    <ul>
+                                        <li>Sniffles</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </a>
-                <a href="/methylation" class="card-link" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Détecter la méthylation</h5>
-                            <p class="card-text">Ce workflow permet de détecter la méthylation, il commence par faire le basecalling avec un modèle dédié à la méthylation, puis il aligne les reads
-                                sur un génome de référence et enfin il sort un BAM.
-                            </p>
+                    </a>
+                    <a href="/moyenne_reads" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Calculer la moyenne des reads des cibles</h5>
+                                <p class="card-text">Ce workflow permet de calculer la moyenne des reads des cibles depuis un fichier BAM trié et indéxé. Il vous faudra un fichier BED pour spécifier les régions cibles.</p>
+                                <div class="tools-used">
+                                    <h6>Outils Utilisés :</h6>
+                                    <ul>
+                                        <li>bedtools</li>
+                                        <li>awk</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                    <a href="/cible_reads" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Filtrage des reads selon les régions d'intérêt</h5>
+                                <p class="card-text">Ce workflow permet de filtrer les reads selon les régions d'intérêt depuis un fichier BAM trié et indéxé. Il vous faudra un fichier BED pour spécifier les régions d'intérêt.</p>
+                                <div class="tools-used">
+                                    <h6>Outils Utilisés :</h6>
+                                    <ul>
+                                        <li>samtools</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/reads_length" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Filtrage des reads selon leur longueur</h5>
+                                <p class="card-text">Ce workflow permet de filtrer les reads selon leur longueur depuis un fichier BAM trié et indéxé. Cela est utile lorsque vous avez beaucoup de reads sur Alamut et que beaucoup d'entre eux ont une longueur qui ne vous intéresse pas.</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/phred_quality" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Filtrage des reads selon le phred quality d'une position génomique</h5>
+                                <p class="card-text">Ce workflow permet de filtrer les reads selon le phred quality d'une position génomique depuis un fichier BAM. Cela est utilise lorsque vous avez beaucoup de reads sur Alamut et que beaucoup d'entre eux ont un phred quality faible.</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/methylation" class="card-link" style="text-decoration: none; color: inherit;">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Détecter la méthylation</h5>
+                                <p class="card-text">Ce workflow permet de détecter la méthylation, il commence par faire le basecalling avec un modèle dédié à la méthylation, puis il aligne les reads sur un génome de référence et enfin il sort un BAM.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
