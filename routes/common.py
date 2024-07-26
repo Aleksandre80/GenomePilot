@@ -24,8 +24,9 @@ def status():
 def login():
     if request.method == 'POST':
         password = request.form['password']
+        username = request.form['username']
         role = "user"
-        if password == "Aleksandre":
+        if password == "Aleksandre" and username == "admin":
             role = "superadmin"
         session['password'] = password
         session['role'] = role

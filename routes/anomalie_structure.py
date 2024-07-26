@@ -173,3 +173,10 @@ def handle_anomalie_structure_script():
         return jsonify(success=True, report=new_workflow.status)
     
     return jsonify(success=False, message="Invalid request method. Use POST.")
+
+@anomalie_structure_bp.route('/history-anomalie-structure')
+@role_requis('superadmin') 
+def history():
+    configurations = ConfigurationAnomalieStructure.query.all()
+    configurations.sort(key=lambda x: x.date_created, reverse=True)
+    return render_template('history-anomalie-structure.html', configurations=configurations)

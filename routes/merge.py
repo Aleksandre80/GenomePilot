@@ -157,3 +157,9 @@ def handle_script():
     
     return jsonify(success=False, message="Invalid request method. Use POST.")
 
+@merge_bp.route('/history-merge')
+@role_requis('superadmin') 
+def history():
+    configurations = ConfigurationMerge.query.all()
+    configurations.sort(key=lambda x: x.date_created, reverse=True)
+    return render_template('history-merge.html', configurations=configurations)

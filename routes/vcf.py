@@ -193,3 +193,10 @@ def handle_vcf_script():
         return jsonify(success=True, report=new_workflow.status)
     
     return jsonify(success=False, message="Invalid request method. Use POST.")
+
+@vcf_bp.route('/history-vcf')
+@role_requis('superadmin') 
+def history():
+    configurations = ConfigurationVCF.query.all()
+    configurations.sort(key=lambda x: x.date_created, reverse=True)
+    return render_template('history-vcf.html', configurations=configurations)

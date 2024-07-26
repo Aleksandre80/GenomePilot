@@ -5,14 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            background-image: url('/static/img/DALL·E\ 2024-07-26\ 11.39.04\ -\ A\ highly\ detailed\ and\ long\ helical\ strand\ of\ DNA\,\ rendered\ in\ a\ realistic\ and\ scientific\ style.\ The\ DNA\ strand\ should\ have\ a\ smooth\,\ glossy\ appearance.webp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: rgba(255, 255, 255, 0.567);
+        }
+        .container {
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+        .form-control {
+            background: rgba(255, 255, 255, 0.567);
+        }
+        .input-group-text {
+            background: rgba(255, 255, 255, 0.567);
+        }
+    </style>
 </head>
 <body>
+    <header class="py-3 mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <!-- <img src="logo.png" alt="Logo" style="height: 40px;"> -->
+                <h1 class="ms-3 mb-0">GenomePilot</h1>
+            </div>
+            <div>
+                <span class="me-3"><i class="fas fa-user"></i> Admin</span>
+            </div>
+        </div>
+    </header>
     <div class="container mt-5">
         <h2 class="mb-3">Page de connexion</h2>
         <form action="/login" method="post">
             <div class="mb-3">
+                <label for="username" class="form-label">Nom d'utilisateur</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Entrez votre nom d'utilisateur" required>
+                </div>
+            </div>
+            <div class="mb-3">
                 <label for="password" class="form-label">Mot de passe</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="Entrez votre mot de passe" required>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Entrez votre mot de passe" required>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Se connecter</button>
         </form>

@@ -119,6 +119,7 @@
             </div>
             <button type="submit" class="btn btn-primary">Ajouter la configuration</button>
         </form>
+
         <ul id="configList" class="list-group mt-3"></ul>
 
         <button onclick="generateAndShowScript()" class="btn btn-secondary mb-3">Générer le script</button>
@@ -145,7 +146,7 @@
                 .then(data => {
                     if (data.success) {
                         console.log('Configuration added:', data.configurations);
-                        updateConfigList(data.configurations); // Actualiser la liste après ajout
+                        fetchConfigurations(); // Actualiser la liste après ajout
                     } else {
                         alert(data.message);
                     }
@@ -153,13 +154,14 @@
                 .catch(error => console.error('Error adding configuration:', error));
         });
 
+
         function updateConfigList(configurations) {
             const configList = document.getElementById('configList');
             configList.innerHTML = ''; // Clear existing entries
             configurations.forEach((config, index) => {
                 const li = document.createElement('li');
                 li.className = 'list-group-item';
-                li.textContent = `Config ${index + 1}: ${config.input_file} - ${config.output_dir}`;
+                li.textContent = `Config ${index + 1}: ${config.input_file} ${config.output_dir} ${config.length_option} ${config.min_length} ${config.min_length_between} ${config.max_length_between}`;
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Delete';
                 deleteBtn.className = 'btn btn-danger btn-sm float-right';
@@ -188,12 +190,34 @@
         function fetchConfigurations() {
             fetch('/get_configurations_reads_length')
                 .then(response => response.json())
-                .then(data => {
-                    if (data.configurations) {
-                        updateConfigList(data.configurations);
-                    }
+                .then(configurations => {
+                    updateConfigList(configurations);
                 })
                 .catch(error => console.error('Error loading configurations:', error));
+        }
+
+        function startScript() {
+            fetch('/start_reads_length_script', {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Script started:', data);
+                    alert('Script started');
+                })
+                .catch(error => console.error('Error starting script:', error));
+        }
+    </script>
+    <script>
+        function generateAndShowScript() {
+            fetch('/generate_reads_length_script')
+                .then(response => response.json())
+                .then(data => {
+                    const codeBlock = document.getElementById('scriptArea');
+                    codeBlock.textContent = JSON.parse(data.script); // Utilisez JSON.parse pour décoder le contenu échappé
+                    Prism.highlightElement(codeBlock);  // Demandez à Prism de mettre en évidence le nouveau contenu
+                })
+                .catch(error => console.error('Error:', error));
         }
 
         function updateForm() {
@@ -212,22 +236,11 @@
                 document.getElementById("max_length_between").required = true;
             }
         }
-    </script>
-    <script>
-        function generateAndShowScript() {
-            fetch('/generate_phred_quality_script')
-                .then(response => response.json())
-                .then(data => {
-                    const codeBlock = document.getElementById('scriptArea');
-                    codeBlock.textContent = data.script; // Utilisez textContent pour préserver les sauts de ligne
-                    Prism.highlightElement(codeBlock);  // Demandez à Prism de mettre en évidence le nouveau contenu
-                })
-                .catch(error => console.error('Error:', error));
-        }
+
     </script>
     <script>
         function downloadScript() {
-            window.location.href = '/download_phred_quality_script';
+            window.location.href = '/download_reads_length_script';
         }
     </script>
     <script>
