@@ -3,6 +3,7 @@ from models import Workflow
 from utils import role_requis, get_role_utilisateur
 import psutil
 from extensions import db
+from datetime import datetime
 
 common_bp = Blueprint('common_bp', __name__)
 
@@ -15,7 +16,7 @@ def accueil():
 @role_requis('superadmin')
 def status():
     workflows = Workflow.query.order_by(Workflow.start_time.desc()).all()
-    # new_workflow = Workflow(name="Creation VCF", status="Running")
+    # new_workflow = Workflow(name="BAM Merge", status="Running", start_time=datetime.utcnow(), output_dir="output_dir", end_time=datetime.utcnow())
     # db.session.add(new_workflow)
     # db.session.commit()
     return render_template('status.html', workflows=workflows)

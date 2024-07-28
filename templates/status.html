@@ -97,7 +97,8 @@
                         <a class="nav-link" href="/">Available Workflows</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/status">Analyses <span id="runningCount" class="badge bg-primary">0</span></a>
+                        <a class="nav-link active" href="/status">Analyses <span id="runningCount"
+                                class="badge bg-primary">0</span></a>
                     </li>
                 </ul>
             </div>
@@ -105,68 +106,78 @@
     </nav>
     <div class="container">
         <div class="row">
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <h2>Analyses</h2>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th scope="col" onclick="sortTable(0)">Name</th>
-                            <th scope="col" onclick="sortTable(1)">Workflow</th>
-                            <th scope="col" onclick="sortTable(2)">Created</th>
-                            <th scope="col" onclick="">Finished</th>
-                            <th scope="col" onclick="sortTable(3)">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for workflow in workflows %}
-                        <tr>
-                            <td>{{ workflow.name }}</td>
-                            <td>{{ workflow.name }}</td>
-                            <td>{{ workflow.start_time.strftime('%Y-%m-%d %H:%M:%S') if workflow.start_time else 'N/A' }}</td>
-                            <td>{{ workflow.end_time.strftime('%Y-%m-%d %H:%M:%S') if workflow.end_time else 'N/A' }}</td>
-                            <td>
-                                <div style="display: flex; align-items: center;">
-                                    <span class="badge bg-{{ 'success' if workflow.status == 'Completed' else 'danger' if workflow.status == 'Failed' else 'secondary' }}">
-                                        {{ workflow.status | default('Unknown') }}
-                                    </span>
-                                    {% if workflow.status == 'Running' %}
-                                        <l-helix size="45" speed="2.5" color="#0d6efd" style="transform: rotate(90deg); margin-left: 10px;"></l-helix>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-3">
-                <input type="text" id="searchInput" placeholder="Rechercher par nom" class="form-control mb-3">
-                <h4>Filtrer par Statut</h4>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="Pending" id="filterPending" checked>
-                    <label class="form-check-label" for="filterPending">
-                        Pending
-                    </label>
+                <!-- <div>
+                    <input type="text" id="nameFilter" placeholder="Filter by Name" class="form-control mb-3" onkeyup="filterTable()">
+                    <select id="statusFilter" class="form-control mb-3" onchange="filterTable()">
+                        <option value="">All Statuses</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Failed">Failed</option>
+                        <option value="Running">Running</option>
+                        <option value="Unknown">Unknown</option>
+                    </select>
+                </div> -->
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" onclick="sortTable(0)">Name</th>
+                                        <th scope="col" onclick="sortTable(1)">Workflow</th>
+                                        <th scope="col" onclick="sortTable(2)">Created</th>
+                                        <th scope="col" onclick="sortTable(3)">Finished</th>
+                                        <th scope="col" onclick="sortTable(4)">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="workflowTableBody">
+                                    {% for workflow in workflows %}
+                                    <tr>
+                                        <td>{{ workflow.name }}</td>
+                                        <td>{{ workflow.name }}</td>
+                                        <td>{{ workflow.start_time.strftime('%Y-%m-%d %H:%M:%S') if workflow.start_time else 'N/A' }}</td>
+                                        <td>{{ workflow.end_time.strftime('%Y-%m-%d %H:%M:%S') if workflow.end_time else 'N/A' }}</td>
+                                        <td>
+                                            <div style="display: flex; align-items: center;">
+                                                <span class="badge bg-{{ 'success' if workflow.status == 'Completed' else 'danger' if workflow.status == 'Failed' else 'secondary' }}">
+                                                    {{ workflow.status | default('Unknown') }}
+                                                </span>
+                                                {% if workflow.status == 'Running' %}
+                                                <l-helix size="45" speed="2.5" color="#0d6efd" style="transform: rotate(90deg); margin-left: 10px;"></l-helix>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" id="nameFilter" placeholder="Filter by Name" class="form-control mb-3" onkeyup="filterTable()">
+                            <h4>Filtrer par Statut</h4>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Pending" id="filterPending" checked onchange="filterTable()">
+                                <label class="form-check-label" for="filterPending">Pending</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Running" id="filterRunning" checked onchange="filterTable()">
+                                <label class="form-check-label" for="filterRunning">Running</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Completed" id="filterCompleted" checked onchange="filterTable()">
+                                <label class="form-check-label" for="filterCompleted">Completed</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Failed" id="filterFailed" checked onchange="filterTable()">
+                                <label class="form-check-label" for="filterFailed">Failed</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="Running" id="filterRunning" checked>
-                    <label class="form-check-label" for="filterRunning">
-                        Running
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="Completed" id="filterCompleted" checked>
-                    <label class="form-check-label" for="filterCompleted">
-                        Completed
-                    </label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="Failed" id="filterFailed" checked>
-                    <label class="form-check-label" for="filterFailed">
-                        Failed
-                    </label>
-                </div>
-            </div>
+                
+                
+                
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
