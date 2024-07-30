@@ -62,6 +62,7 @@ def generate_methylartist_script():
         output_tsv = f"{config['output_dir']}/{bed_basename}.{bam_basename}.segmeth.tsv"
         output_png = f"{config['output_dir']}/{bed_basename}.{bam_basename}.png"
         output_dir = f"{config['output_dir']}"
+        status_file = f"{output_dir}/methylartist_status.txt"
         
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting MethylArtist analysis for input file {input_bam}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p {output_dir} \n"
@@ -120,6 +121,7 @@ def download_methylartist_script():
         output_tsv = f"{config['output_dir']}/{bed_basename}.{bam_basename}.segmeth.tsv"
         output_png = f"{config['output_dir']}/{bed_basename}.{bam_basename}.png"
         output_dir = f"{config['output_dir']}"
+        status_file = f"{output_dir}/vcf_status.txt"
         
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting MethylArtist analysis for input file {input_bam}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p {output_dir} \n"
