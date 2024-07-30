@@ -76,6 +76,31 @@ class ConfigurationReadsLength(db.Model):
     min_length = db.Column(db.String(120), nullable=True)
     max_length = db.Column(db.String(120), nullable=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class ConfigurationMethylation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_dir = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
+    ref_genome = db.Column(db.String(120), nullable=False)
+    methylationModelBasic = db.Column(db.String(120), nullable=False)
+    methylationModelMethyl = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class ConfigurationMethylartist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_file = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
+    ref_bed = db.Column(db.String(120), nullable=False)
+    ref_genome = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class ConfigurationMethylartistViolon(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_file = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
+    ref_bed = db.Column(db.String(120), nullable=False)
+    ref_genome = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Workflow(db.Model):
     id = db.Column(db.Integer, primary_key=True)

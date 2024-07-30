@@ -68,3 +68,7 @@ def disk():
 def running_workflows_count():
     count = Workflow.query.filter_by(status='Running').count()
     return jsonify({'running_workflows_count': count})
+
+@common_bp.route('/methylation-hub')
+def methylation():
+    return render_template('methylation-hub.html')

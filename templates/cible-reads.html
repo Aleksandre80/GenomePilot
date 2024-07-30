@@ -146,21 +146,21 @@
         });
 
 
-        function updateConfigList(configurations) {
-            const configList = document.getElementById('configList');
-            configList.innerHTML = ''; // Clear existing entries
-            configurations.forEach((config, index) => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.textContent = `Config ${index + 1}: ${config.input_file} - ${config.output_dir} - ${config.bed_file}`;
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.className = 'btn btn-danger btn-sm float-right';
-                deleteBtn.onclick = function () { deleteConfiguration(index); };
-                li.appendChild(deleteBtn);
-                configList.appendChild(li);
-            });
-        }
+        // function updateConfigList(configurations) {
+        //     const configList = document.getElementById('configList');
+        //     configList.innerHTML = ''; // Clear existing entries
+        //     configurations.forEach((config, index) => {
+        //         const li = document.createElement('li');
+        //         li.className = 'list-group-item';
+        //         li.textContent = `Config ${index + 1}: ${config.input_file} - ${config.output_dir} - ${config.bed_file}`;
+        //         const deleteBtn = document.createElement('button');
+        //         deleteBtn.textContent = 'Delete';
+        //         deleteBtn.className = 'btn btn-danger btn-sm float-right';
+        //         deleteBtn.onclick = function () { deleteConfiguration(index); };
+        //         li.appendChild(deleteBtn);
+        //         configList.appendChild(li);
+        //     });
+        // }
 
         function deleteConfiguration(index) {
             fetch('/delete_config_cible_reads', {
@@ -246,6 +246,35 @@
         });
 
     </script>
+        <script>
+            function createDeleteButton(index) {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.className = 'btn btn-danger btn-sm float-end';
+                deleteBtn.onclick = function () {
+                    deleteConfiguration(index);
+                };
+                return deleteBtn;
+            }
+    
+            function createConfigListItem(config, index) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.textContent = `Config ${index + 1}: ${config.input_file} - ${config.output_dir} - ${config.bed_file}`;
+                const deleteBtn = createDeleteButton(index);
+                li.appendChild(deleteBtn);
+                return li;
+            }
+    
+            function updateConfigList(configurations) {
+                const configList = document.getElementById('configList');
+                configList.innerHTML = ''; // Clear existing entries
+                configurations.forEach((config, index) => {
+                    const listItem = createConfigListItem(config, index);
+                    configList.appendChild(listItem);
+                });
+            }
+        </script>
     <script src="/static/js/analyse_count.js"></script>
 </body>
 

@@ -18,6 +18,9 @@ from routes.moyenne_reads import moyenne_reads_bp
 from routes.phred_quality import phred_quality_bp
 from routes.cible_reads import cible_reads_bp
 from routes.reads_length import reads_length_bp
+from routes.methylation import methylation_bp
+from routes.methylartist import methylartist_bp
+from routes.methylartist_violon import methylartist_violon_bp
 from routes.common import common_bp
 
 app.register_blueprint(basecalling_bp)
@@ -29,7 +32,11 @@ app.register_blueprint(moyenne_reads_bp)
 app.register_blueprint(phred_quality_bp)
 app.register_blueprint(cible_reads_bp)
 app.register_blueprint(reads_length_bp)
+app.register_blueprint(methylation_bp)
+app.register_blueprint(methylartist_bp)
+app.register_blueprint(methylartist_violon_bp)
 app.register_blueprint(common_bp)
+
 
 if __name__ == '__main__':
     with app.app_context():
