@@ -49,15 +49,23 @@ def disk_info():
     partitions = psutil.disk_partitions()
     disk_data = []
     for partition in partitions:
-        usage = psutil.disk_usage(partition.mountpoint)
-        disk_info = {
-            'device': partition.device,
-            'mountpoint': partition.mountpoint,
-            'used': usage.used / (1024**3),
-            'free': usage.free / (1024**3),
-            'total': usage.total / (1024**3)
-        }
-        disk_data.append(disk_info)
+        try:
+            usage = psutil.disk_usage(partition.mountpoint)
+            disk_info = {
+                'device': partition.device,
+                'mountpoint': partition.mountpoint,
+                'used': usage.used / (1024**3),
+                'free': usage.free / (1024**3),
+                'total': usage.total / (1024**3)
+            }
+            disk_data.append(disk_info)
+        except OSError as e:
+            disk_info = {
+                'device': partition.device,
+                'mountpoint': partition.mountpoint,
+                'error': str(e)
+            }
+            disk_data.append(disk_info)
     return jsonify(disk_data)
 
 @common_bp.route('/disk')
