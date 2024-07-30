@@ -59,7 +59,7 @@ def generate_methylartist_script():
         
         bam_basename = os.path.basename(input_bam).replace('.bam', '')
         bed_basename = os.path.basename(ref_bed).replace('.bed', '')
-        output_tsv = f"{config['output_dir']}/{bed_basename}.{bam_basename}.tsv"
+        output_tsv = f"{config['output_dir']}/{bed_basename}.{bam_basename}.segmeth.tsv"
         output_png = f"{config['output_dir']}/{bed_basename}.{bam_basename}.png"
         output_dir = f"{config['output_dir']}"
         
@@ -117,7 +117,7 @@ def download_methylartist_script():
         
         bam_basename = os.path.basename(input_bam).replace('.bam', '')
         bed_basename = os.path.basename(ref_bed).replace('.bed', '')
-        output_tsv = f"{config['output_dir']}/{bed_basename}.{bam_basename}.tsv"
+        output_tsv = f"{config['output_dir']}/{bed_basename}.{bam_basename}.segmeth.tsv"
         output_png = f"{config['output_dir']}/{bed_basename}.{bam_basename}.png"
         output_dir = f"{config['output_dir']}"
         
