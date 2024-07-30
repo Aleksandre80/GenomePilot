@@ -55,6 +55,7 @@ def generate_methylartist_script():
         input_bam = config['input_file']  # Using input_file directly from the config
         ref_bed = config['ref_bed']
         ref_genome = config['ref_genome']
+        output_dir = config['output_dir']
         
         bam_basename = os.path.basename(input_bam).replace('.bam', '')
         bed_basename = os.path.basename(ref_bed).replace('.bed', '')
@@ -66,13 +67,14 @@ def generate_methylartist_script():
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter methylartist segmeth
-        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG > \"{output_tsv}\" 2>> \"{log_file}\"\n"
+        script_content +=  f"cd {config['output_dir']} \n"
+        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG \n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth completed successfully.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter segplot
-        script_content += f"    segplot -s \"{output_tsv}\" -o \"{output_png}\" 2>> \"{log_file}\"\n"
+        script_content += f"    methylartist segplot -s \"{output_tsv}\" -o \"{output_png}\" 2>> \"{log_file}\"\n"
         
         script_content += f"    if [ $? -eq 0 ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - segplot completed successfully.\" >> \"{log_file}\"\n"
