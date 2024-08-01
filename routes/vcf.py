@@ -175,7 +175,8 @@ def delete_configuration_vcf():
 @role_requis('superadmin')
 def handle_vcf_script():
     if request.method == 'POST':
-        new_workflow = Workflow(name="VCF Generation", status="Running", start_time=datetime.utcnow(), output_dir=configurations_vcf[-1]['output_dir'])
+        vcf_directory = os.path.join(configurations_vcf[-1]['output_dir'], f"VCF_q{configurations_vcf[-1]['qscore']}")
+        new_workflow = Workflow(name="VCF Generation", status="Running", start_time=datetime.utcnow(), output_dir=vcf_directory)
         db.session.add(new_workflow)
         db.session.commit()
         
@@ -186,7 +187,7 @@ def handle_vcf_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            status_file = configurations_vcf[-1]['output_dir'] + "/vcf/vcf_status.txt"
+            status_file = os.path.join(vcf_directory, "vcf_status.txt")
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
                     status_info = file.read().strip()
@@ -210,6 +211,7 @@ def handle_vcf_script():
         return jsonify(success=True, report=new_workflow.status)
     
     return jsonify(success=False, message="Invalid request method. Use POST.")
+
 
 @vcf_bp.route('/history-vcf')
 @role_requis('superadmin') 
