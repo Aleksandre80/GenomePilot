@@ -7,6 +7,7 @@ import subprocess
 import shlex
 import json
 from datetime import datetime
+import re
 
 vcf_bp = Blueprint('vcf_bp', __name__)
 
@@ -42,12 +43,21 @@ def vcf_creator():
 def generate_vcf_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_vcf:
-        vcf_directory = os.path.join(config['output_dir'], "vcf")
+        bam_filename = os.path.basename(config['bam_file'])
+        bam_basename = bam_filename.replace('.bam', '')
+        ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
+        
+        # Extract q-score from BAM filename
+        qscore = "X"  # Default to "X" if not found
+        qscore_match = re.search(r'_q(\d+)', bam_basename)
+        if qscore_match:
+            qscore = qscore_match.group(1)
+        
+        vcf_directory = os.path.join(config['output_dir'], f"VCF-q{qscore}")
         log_file = f"{vcf_directory}/vcf_log.txt"
         report_file = f"{vcf_directory}/vcf_report.html"
         status_file = f"{vcf_directory}/vcf_status.txt"
-        bam_basename = os.path.basename(config['bam_file']).replace('.bam', '')
-        output_vcf_path = os.path.join(vcf_directory, f"{bam_basename}.vcf")
+        output_vcf_path = os.path.join(vcf_directory, f"{bam_basename}_{ref_basename}.vcf")
 
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
@@ -84,20 +94,26 @@ def generate_vcf_script():
     return jsonify(script=escaped_script_content)
 
 
-
-
-
 @vcf_bp.route('/download_vcf_script', methods=['GET'])
 @role_requis('superadmin')
 def download_vcf_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_vcf:
-        vcf_directory = os.path.join(config['output_dir'], "vcf")
+        bam_filename = os.path.basename(config['bam_file'])
+        bam_basename = bam_filename.replace('.bam', '')
+        ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
+        
+        # Extract q-score from BAM filename
+        qscore = "X"  # Default to "X" if not found
+        qscore_match = re.search(r'_q(\d+)', bam_basename)
+        if qscore_match:
+            qscore = qscore_match.group(1)
+        
+        vcf_directory = os.path.join(config['output_dir'], f"VCF-q{qscore}")
         log_file = f"{vcf_directory}/vcf_log.txt"
         report_file = f"{vcf_directory}/vcf_report.html"
         status_file = f"{vcf_directory}/vcf_status.txt"
-        bam_basename = os.path.basename(config['bam_file']).replace('.bam', '')
-        output_vcf_path = os.path.join(vcf_directory, f"{bam_basename}.vcf")
+        output_vcf_path = os.path.join(vcf_directory, f"{bam_basename}_{ref_basename}.vcf")
 
         script_content += f"mkdir -p \"{vcf_directory}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting VCF generation for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
@@ -127,6 +143,7 @@ def download_vcf_script():
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
+
 
     script_path = '/data/Script_Site/tmp/vcf_script.sh'
     with open(script_path, 'w') as file:

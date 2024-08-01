@@ -74,33 +74,37 @@ def delete_configuration_reads_length():
 def generate_reads_length_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_reads_length:
-        log_file = f"{config['output_dir']}/reads_length_log.txt"
-        report_file = f"{config['output_dir']}/reads_length_report.html"
-        status_file = f"{config['output_dir']}/reads_length_status.txt"
-        filtered_bam = f"{config['output_dir']}/filtered.bam"
+        bam_filename = os.path.basename(config['input_file'])
+        bam_basename = bam_filename.replace('.bam', '')
+        
+        if config['length_option'] == 'sup':
+            length_desc = f"sup_{config['min_length']}"
+        elif config['length_option'] == 'between':
+            length_desc = f"between_{config['min_length_between']}_{config['max_length_between']}"
+        else:
+            length_desc = "unknown_length"
+
+        output_dir = os.path.join(config['output_dir'], "Longueur-Reads")
+        log_file = f"{output_dir}/reads_length_log.txt"
+        report_file = f"{output_dir}/reads_length_report.html"
+        status_file = f"{output_dir}/reads_length_status.txt"
+        filtered_bam = f"{output_dir}/{bam_basename}_{length_desc}.bam"
 
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting BAM filtering by read length for input file {config['input_file']}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
-        # Commandes pour filtrer le fichier BAM selon la longueur
+        # Commande pour filtrer le fichier BAM selon l'option de longueur
         if config['length_option'] == 'sup':
-            script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || length($10) > {config['min_length']}) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
+            script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || length($10) >= {config['min_length']}) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
         elif config['length_option'] == 'between':
-            min_length_between = config.get('min_length')
-            max_length_between = config.get('max_length')
-            if min_length_between and max_length_between:
-                script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || length($10) >= {min_length_between} && length($10) <= {max_length_between}) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
-            else:
-                script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Missing min_length_between or max_length_between configuration values.\" >> \"{log_file}\"\n"
-                script_content += f"echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-                continue
+            script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || (length($10) >= {config['min_length_between']} && length($10) <= {config['max_length_between']})) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ -f \"{filtered_bam}\" ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering by read length completed and filtered.bam generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering by read length completed and {bam_basename}_{length_desc}.bam generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering by read length failed. filtered.bam not generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering by read length failed. {bam_basename}_{length_desc}.bam not generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
@@ -119,38 +123,43 @@ def generate_reads_length_script():
 
 
 
+
 @reads_length_bp.route('/download_reads_length_script', methods=['GET'])
 @role_requis('superadmin')
 def download_reads_length_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_reads_length:
-        log_file = f"{config['output_dir']}/reads_length_log.txt"
-        report_file = f"{config['output_dir']}/reads_length_report.html"
-        status_file = f"{config['output_dir']}/reads_length_status.txt"
-        filtered_bam = f"{config['output_dir']}/filtered.bam"
+        bam_filename = os.path.basename(config['input_file'])
+        bam_basename = bam_filename.replace('.bam', '')
+        
+        if config['length_option'] == 'sup':
+            length_desc = f"sup_{config['min_length']}"
+        elif config['length_option'] == 'between':
+            length_desc = f"between_{config['min_length_between']}_{config['max_length_between']}"
+        else:
+            length_desc = "unknown_length"
+
+        output_dir = os.path.join(config['output_dir'], "Longueur-Reads")
+        log_file = f"{output_dir}/reads_length_log.txt"
+        report_file = f"{output_dir}/reads_length_report.html"
+        status_file = f"{output_dir}/reads_length_status.txt"
+        filtered_bam = f"{output_dir}/{bam_basename}_{length_desc}.bam"
 
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting BAM filtering by read length for input file {config['input_file']}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
-        # Commandes pour filtrer le fichier BAM selon la longueur
+        # Commande pour filtrer le fichier BAM selon l'option de longueur
         if config['length_option'] == 'sup':
-            script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || length($10) > {config['min_length']}) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
+            script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || length($10) >= {config['min_length']}) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
         elif config['length_option'] == 'between':
-            min_length_between = config.get('min_length')
-            max_length_between = config.get('max_length')
-            if min_length_between and max_length_between:
-                script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || length($10) >= {min_length_between} && length($10) <= {max_length_between}) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
-            else:
-                script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Missing min_length_between or max_length_between configuration values.\" >> \"{log_file}\"\n"
-                script_content += f"echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-                continue
+            script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || (length($10) >= {config['min_length_between']} && length($10) <= {config['max_length_between']})) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ -f \"{filtered_bam}\" ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering by read length completed and filtered.bam generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering by read length completed and {bam_basename}_{length_desc}.bam generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering by read length failed. filtered.bam not generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering by read length failed. {bam_basename}_{length_desc}.bam not generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         

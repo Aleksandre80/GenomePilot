@@ -67,6 +67,10 @@ def generate_script():
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
         
         qs_scores_list = config['qs_scores'].split()
+        ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
+        model_basename = os.path.basename(config['model']).replace('.bin', '')
+        kit_name = config['kit_name']
+
         for qscore in qs_scores_list:
             output_dir = f"${{BASE_OUTPUT_DIR}}/demultiplexed_q{qscore}"
             script_content += f"BASE_OUTPUT_DIR=\"{config['base_output_dir']}\"\n"
@@ -80,14 +84,14 @@ OUTPUT_DIR="{output_dir}"
 mkdir -p "${{OUTPUT_DIR}}"
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling and demultiplexing for Q-score {qscore}" >> \"{log_file}\"
 ${{DORADO_BIN}} basecaller -x "{config['cuda_device']}" --min-qscore "{qscore}" --no-trim --emit-fastq ${{MODEL_PATH}} ${{INPUT_DIR}} | \\
-${{DORADO_BIN}} demux --kit-name "{config['kit_name']}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
+${{DORADO_BIN}} demux --kit-name "{kit_name}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir']} with Q-score {qscore}" >> \"{log_file}\"
 """
             script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
-            script_content += f"    bam_file=\"${{fastq_file%.fastq}}.bam\"\n"
+            script_content += f"    bam_file=\"{ref_basename}_{model_basename}_{kit_name}_q{qscore}.bam\"\n"
             script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning ${{fastq_file}} to reference genome...\" >> \"{log_file}\"\n"
-            script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"$bam_file\"\n"
-            script_content += f"    samtools index \"$bam_file\"\n"
+            script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"${{OUTPUT_DIR}}/$bam_file\"\n"
+            script_content += f"    samtools index \"${{OUTPUT_DIR}}/$bam_file\"\n"
             script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for ${{bam_file}}\" >> \"{log_file}\"\n"
             script_content += "done\n"
     
@@ -125,6 +129,10 @@ def download_basecalling_script():
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
         
         qs_scores_list = config['qs_scores'].split()
+        ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
+        model_basename = os.path.basename(config['model']).replace('.bin', '')
+        kit_name = config['kit_name']
+
         for qscore in qs_scores_list:
             output_dir = f"${{BASE_OUTPUT_DIR}}/demultiplexed_q{qscore}"
             script_content += f"BASE_OUTPUT_DIR=\"{config['base_output_dir']}\"\n"
@@ -138,14 +146,14 @@ OUTPUT_DIR="{output_dir}"
 mkdir -p "${{OUTPUT_DIR}}"
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling and demultiplexing for Q-score {qscore}" >> \"{log_file}\"
 ${{DORADO_BIN}} basecaller -x "{config['cuda_device']}" --min-qscore "{qscore}" --no-trim --emit-fastq ${{MODEL_PATH}} ${{INPUT_DIR}} | \\
-${{DORADO_BIN}} demux --kit-name "{config['kit_name']}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
+${{DORADO_BIN}} demux --kit-name "{kit_name}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir']} with Q-score {qscore}" >> \"{log_file}\"
 """
             script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
-            script_content += f"    bam_file=\"${{fastq_file%.fastq}}.bam\"\n"
+            script_content += f"    bam_file=\"{ref_basename}_{model_basename}_{kit_name}_q{qscore}.bam\"\n"
             script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning ${{fastq_file}} to reference genome...\" >> \"{log_file}\"\n"
-            script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"$bam_file\"\n"
-            script_content += f"    samtools index \"$bam_file\"\n"
+            script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"${{OUTPUT_DIR}}/$bam_file\"\n"
+            script_content += f"    samtools index \"${{OUTPUT_DIR}}/$bam_file\"\n"
             script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for ${{bam_file}}\" >> \"{log_file}\"\n"
             script_content += "done\n"
     

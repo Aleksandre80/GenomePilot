@@ -6,6 +6,7 @@ from extensions import db
 from models import ConfigurationMerge, Workflow
 from utils import role_requis
 from datetime import datetime
+import json
 
 merge_bp = Blueprint('merge_bp', __name__)
 
@@ -41,13 +42,15 @@ def bam_merger():
 def generate_bam_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_merge:
-        log_file = f"{config['output_dir']}/merge_log.txt"
-        report_file = f"{config['output_dir']}/merge_report.html"
-        status_file = f"{config['output_dir']}/merge_status.txt"
+        merge_dir = f"{config['output_dir']}/merge-BAM"
+        log_file = f"{merge_dir}/merge_log.txt"
+        report_file = f"{merge_dir}/merge_report.html"
+        status_file = f"{merge_dir}/merge_status.txt"
+        merged_bam = f"{merge_dir}/merge.bam"
 
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"mkdir -p \"{merge_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"samtools merge \"{config['output_dir']}/merged.bam\" \"{config['input_dir']}\"/*.bam\n"
+        script_content += f"samtools merge \"{merged_bam}\" \"{config['input_dir']}\"/*.bam\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
@@ -63,7 +66,11 @@ def generate_bam_script():
         script_content += f"done < {log_file}\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
     
-    return jsonify(script=script_content)
+    # Échapper les caractères spéciaux pour JSON
+    escaped_script_content = json.dumps(script_content)
+
+    return jsonify(script=escaped_script_content)
+
 
 
 @merge_bp.route('/download_bam_script', methods=['GET'])
@@ -71,13 +78,15 @@ def generate_bam_script():
 def download_bam_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_merge:
-        log_file = f"{config['output_dir']}/merge_log.txt"
-        report_file = f"{config['output_dir']}/merge_report.html"
-        status_file = f"{config['output_dir']}/merge_status.txt"
+        merge_dir = f"{config['output_dir']}/merge-BAM"
+        log_file = f"{merge_dir}/merge_log.txt"
+        report_file = f"{merge_dir}/merge_report.html"
+        status_file = f"{merge_dir}/merge_status.txt"
+        merged_bam = f"{merge_dir}/merge.bam"
 
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"mkdir -p \"{merge_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"samtools merge \"{config['output_dir']}/merged.bam\" \"{config['input_dir']}\"/*.bam\n"
+        script_content += f"samtools merge \"{merged_bam}\" \"{config['input_dir']}\"/*.bam\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"

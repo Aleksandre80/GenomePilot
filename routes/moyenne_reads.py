@@ -45,35 +45,40 @@ def moyenne_reads():
 def generate_moyenne_reads_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_moyenne_reads:
-        log_file = f"{config['output_dir']}/moyenne_reads_log.txt"
-        report_file = f"{config['output_dir']}/moyenne_reads_report.html"
-        status_file = f"{config['output_dir']}/moyenne_reads_status.txt"
-        coverage_txt = f"{config['output_dir']}/coverage.txt"
-        coverage_csv = f"{config['output_dir']}/coverage.csv"
+        bam_filename = os.path.basename(config['bam_file'])
+        bam_basename = bam_filename.replace('.bam', '')
+        bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
 
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Calculating reads average for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        output_dir = os.path.join(config['output_dir'], "Moyenne-Reads")
+        log_file = f"{output_dir}/moyenne_reads_log.txt"
+        report_file = f"{output_dir}/moyenne_reads_report.html"
+        status_file = f"{output_dir}/moyenne_reads_status.txt"
+        coverage_txt = f"{output_dir}/{bam_basename}_{bed_filename}.txt"
+        coverage_csv = f"{output_dir}/{bam_basename}_{bed_filename}.csv"
+
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Calculating reads average for BAM file {config['bam_file']} and BED file {config['bed_file']}\" >> \"{log_file}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour calculer la moyenne des reads
-        script_content += f"bedtools coverage -a \"{config['bed_file']}\" -b \"{config['input_dir']}\" > \"{coverage_txt}\" 2>> \"{log_file}\"\n"
+        script_content += f"bedtools coverage -a \"{config['bed_file']}\" -b \"{config['bam_file']}\" > \"{coverage_txt}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ -f \"{coverage_txt}\" ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average completed and coverage.txt generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average completed and {bam_basename}_{bed_filename}.txt generated.\" >> \"{log_file}\"\n"
         
         # Conversion de coverage.txt en coverage.csv
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Converting coverage.txt to coverage.csv...\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Converting {bam_basename}_{bed_filename}.txt to {bam_basename}_{bed_filename}.csv...\" >> \"{log_file}\"\n"
         script_content += f"    awk 'BEGIN {{ OFS=\",\"; print \"chrom\",\"start\",\"end\",\"num_reads\",\"bases_covered\",\"coverage\" }} {{ print $1,$2,$3,$4,$5,$6 }}' \"{coverage_txt}\" > \"{coverage_csv}\" 2>> \"{log_file}\"\n"
         
         script_content += f"    if [ -f \"{coverage_csv}\" ]; then\n"
-        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to coverage.csv completed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to {bam_basename}_{bed_filename}.csv completed.\" >> \"{log_file}\"\n"
         script_content += f"        echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    else\n"
-        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to coverage.csv failed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to {bam_basename}_{bed_filename}.csv failed.\" >> \"{log_file}\"\n"
         script_content += f"        echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    fi\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average failed. coverage.txt not generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average failed. {bam_basename}_{bed_filename}.txt not generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
@@ -92,40 +97,46 @@ def generate_moyenne_reads_script():
 
 
 
+
 @moyenne_reads_bp.route('/download_moyenne_reads_script', methods=['GET'])
 @role_requis('superadmin')
 def download_moyenne_reads_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_moyenne_reads:
-        log_file = f"{config['output_dir']}/moyenne_reads_log.txt"
-        report_file = f"{config['output_dir']}/moyenne_reads_report.html"
-        status_file = f"{config['output_dir']}/moyenne_reads_status.txt"
-        coverage_txt = f"{config['output_dir']}/coverage.txt"
-        coverage_csv = f"{config['output_dir']}/coverage.csv"
+        bam_filename = os.path.basename(config['bam_file'])
+        bam_basename = bam_filename.replace('.bam', '')
+        bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
 
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Calculating reads average for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        output_dir = os.path.join(config['output_dir'], "Moyenne-Reads")
+        log_file = f"{output_dir}/moyenne_reads_log.txt"
+        report_file = f"{output_dir}/moyenne_reads_report.html"
+        status_file = f"{output_dir}/moyenne_reads_status.txt"
+        coverage_txt = f"{output_dir}/{bam_basename}_{bed_filename}.txt"
+        coverage_csv = f"{output_dir}/{bam_basename}_{bed_filename}.csv"
+
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Calculating reads average for BAM file {config['bam_file']} and BED file {config['bed_file']}\" >> \"{log_file}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour calculer la moyenne des reads
-        script_content += f"bedtools coverage -a \"{config['bed_file']}\" -b \"{config['input_dir']}\" > \"{coverage_txt}\" 2>> \"{log_file}\"\n"
+        script_content += f"bedtools coverage -a \"{config['bed_file']}\" -b \"{config['bam_file']}\" > \"{coverage_txt}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ -f \"{coverage_txt}\" ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average completed and coverage.txt generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average completed and {bam_basename}_{bed_filename}.txt generated.\" >> \"{log_file}\"\n"
         
         # Conversion de coverage.txt en coverage.csv
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Converting coverage.txt to coverage.csv...\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Converting {bam_basename}_{bed_filename}.txt to {bam_basename}_{bed_filename}.csv...\" >> \"{log_file}\"\n"
         script_content += f"    awk 'BEGIN {{ OFS=\",\"; print \"chrom\",\"start\",\"end\",\"num_reads\",\"bases_covered\",\"coverage\" }} {{ print $1,$2,$3,$4,$5,$6 }}' \"{coverage_txt}\" > \"{coverage_csv}\" 2>> \"{log_file}\"\n"
         
         script_content += f"    if [ -f \"{coverage_csv}\" ]; then\n"
-        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to coverage.csv completed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to {bam_basename}_{bed_filename}.csv completed.\" >> \"{log_file}\"\n"
         script_content += f"        echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    else\n"
-        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to coverage.csv failed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Conversion to {bam_basename}_{bed_filename}.csv failed.\" >> \"{log_file}\"\n"
         script_content += f"        echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    fi\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average failed. coverage.txt not generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average failed. {bam_basename}_{bed_filename}.txt not generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         

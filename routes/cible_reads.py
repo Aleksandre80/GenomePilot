@@ -47,23 +47,28 @@ def cible_reads():
 def generate_cible_reads_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_cible_reads:
-        log_file = f"{config['output_dir']}/cible_reads_log.txt"
-        report_file = f"{config['output_dir']}/cible_reads_report.html"
-        status_file = f"{config['output_dir']}/cible_reads_status.txt"
-        targeted_bam = f"{config['output_dir']}/targeted.bam"
+        bam_filename = os.path.basename(config['input_file'])
+        bam_basename = bam_filename.replace('.bam', '')
+        bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
+
+        output_dir = os.path.join(config['output_dir'], "Filtre-Regions-Cibles")
+        log_file = f"{output_dir}/cible_reads_log.txt"
+        report_file = f"{output_dir}/cible_reads_report.html"
+        status_file = f"{output_dir}/cible_reads_status.txt"
+        targeted_bam = f"{output_dir}/{bam_basename}_{bed_filename}.bam"
 
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting BAM filtering for regions of interest for input file {config['input_file']}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour filtrer le fichier BAM
         script_content += f"samtools view -b -L \"{config['bed_file']}\" \"{config['input_file']}\" > \"{targeted_bam}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ -f \"{targeted_bam}\" ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering completed and targeted.bam generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering completed and {bam_basename}_{bed_filename}.bam generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering failed. targeted.bam not generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering failed. {bam_basename}_{bed_filename}.bam not generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
@@ -81,28 +86,34 @@ def generate_cible_reads_script():
 
 
 
+
 @cible_reads_bp.route('/download_cible_reads_script', methods=['GET'])
 @role_requis('superadmin')
 def download_cible_reads_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_cible_reads:
-        log_file = f"{config['output_dir']}/cible_reads_log.txt"
-        report_file = f"{config['output_dir']}/cible_reads_report.html"
-        status_file = f"{config['output_dir']}/cible_reads_status.txt"
-        targeted_bam = f"{config['output_dir']}/targeted.bam"
+        bam_filename = os.path.basename(config['input_file'])
+        bam_basename = bam_filename.replace('.bam', '')
+        bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
+
+        output_dir = os.path.join(config['output_dir'], "Filtre-Regions-Cibles")
+        log_file = f"{output_dir}/cible_reads_log.txt"
+        report_file = f"{output_dir}/cible_reads_report.html"
+        status_file = f"{output_dir}/cible_reads_status.txt"
+        targeted_bam = f"{output_dir}/{bam_basename}_{bed_filename}.bam"
 
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting BAM filtering for regions of interest for input file {config['input_file']}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour filtrer le fichier BAM
         script_content += f"samtools view -b -L \"{config['bed_file']}\" \"{config['input_file']}\" > \"{targeted_bam}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ -f \"{targeted_bam}\" ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering completed and targeted.bam generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering completed and {bam_basename}_{bed_filename}.bam generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering failed. targeted.bam not generated.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering failed. {bam_basename}_{bed_filename}.bam not generated.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
