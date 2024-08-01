@@ -70,6 +70,7 @@ def generate_script():
         ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
         model_basename = os.path.basename(config['model']).replace('.bin', '')
         kit_name = config['kit_name']
+        barcode_name = config.get('barcode_name', 'default_barcode')  # Assuming barcode_name is provided in config
 
         for qscore in qs_scores_list:
             output_dir = f"${{BASE_OUTPUT_DIR}}/demultiplexed_q{qscore}"
@@ -88,8 +89,7 @@ ${{DORADO_BIN}} demux --kit-name "{kit_name}" --emit-fastq --output-dir "${{OUTP
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir']} with Q-score {qscore}" >> \"{log_file}\"
 """
             script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
-            script_content += f"    barcode=$(basename \"$fastq_file\" | cut -d'_' -f1)\n"  # Extract barcode from the FASTQ filename
-            script_content += f"    bam_file=\"{ref_basename}_{model_basename}_{kit_name}_${{barcode}}_q{qscore}.bam\"\n"
+            script_content += f"    bam_file=\"{ref_basename}_{model_basename}_{kit_name}_{barcode_name}_q{qscore}.bam\"\n"
             script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning ${{fastq_file}} to reference genome...\" >> \"{log_file}\"\n"
             script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"${{OUTPUT_DIR}}/$bam_file\"\n"
             script_content += f"    samtools index \"${{OUTPUT_DIR}}/$bam_file\"\n"
@@ -119,6 +119,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir'
 
 
 
+
 @basecalling_bp.route('/download_basecalling_script', methods=['GET'])
 @role_requis('superadmin')
 def download_basecalling_script():
@@ -134,6 +135,7 @@ def download_basecalling_script():
         ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
         model_basename = os.path.basename(config['model']).replace('.bin', '')
         kit_name = config['kit_name']
+        barcode_name = config.get('barcode_name', 'default_barcode')  # Assuming barcode_name is provided in config
 
         for qscore in qs_scores_list:
             output_dir = f"${{BASE_OUTPUT_DIR}}/demultiplexed_q{qscore}"
@@ -152,8 +154,7 @@ ${{DORADO_BIN}} demux --kit-name "{kit_name}" --emit-fastq --output-dir "${{OUTP
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir']} with Q-score {qscore}" >> \"{log_file}\"
 """
             script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
-            script_content += f"    barcode=$(basename \"$fastq_file\" | cut -d'_' -f1)\n"  # Extract barcode from the FASTQ filename
-            script_content += f"    bam_file=\"{ref_basename}_{model_basename}_{kit_name}_${{barcode}}_q{qscore}.bam\"\n"
+            script_content += f"    bam_file=\"{ref_basename}_{model_basename}_{kit_name}_{barcode_name}_q{qscore}.bam\"\n"
             script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning ${{fastq_file}} to reference genome...\" >> \"{log_file}\"\n"
             script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"${{OUTPUT_DIR}}/$bam_file\"\n"
             script_content += f"    samtools index \"${{OUTPUT_DIR}}/$bam_file\"\n"
