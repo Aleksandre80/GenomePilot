@@ -51,7 +51,7 @@ def generate_cible_reads_script():
         bam_basename = bam_filename.replace('.bam', '')
         bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
 
-        output_dir = os.path.join(config['output_dir'], "Filtre-Regions-Cibles")
+        output_dir = os.path.join(config['output_dir'], "Filtre_Regions_Cibles")
         log_file = f"{output_dir}/cible_reads_log.txt"
         report_file = f"{output_dir}/cible_reads_report.html"
         status_file = f"{output_dir}/cible_reads_status.txt"
@@ -96,7 +96,7 @@ def download_cible_reads_script():
         bam_basename = bam_filename.replace('.bam', '')
         bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
 
-        output_dir = os.path.join(config['output_dir'], "Filtre-Regions-Cibles")
+        output_dir = os.path.join(config['output_dir'], "Filtre_Regions_Cibles")
         log_file = f"{output_dir}/cible_reads_log.txt"
         report_file = f"{output_dir}/cible_reads_report.html"
         status_file = f"{output_dir}/cible_reads_status.txt"

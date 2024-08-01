@@ -90,8 +90,9 @@
         </div>
         <form id="configForm">
             <div class="mb-3">
-                <label for="input_file" class="form-label">Selectionnez votre fichier BAM qui est aligné, trié et indéxé
-                    :</label>
+                <label for="input_dir" class="form-label" data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Assurez vous que vous ayez le .bai de votre fichier BAM dans le même dossier">Selectionnez votre fichier BAM
+                    qui est aligné, trié et indéxé :</label>
                 <input type="text" class="form-control" id="input_file" name="input_file"
                     placeholder="/data/SV-FLT4/2023-3117/20240701_1345_X1_FAY40986_92117a30/fastq_pass/alignment​/barcode01_aligned_sorted.bam"
                     required>
@@ -217,6 +218,13 @@
         function downloadScript() {
             window.location.href = '/download_moyenne_reads_script';
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        });
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

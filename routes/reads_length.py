@@ -84,7 +84,7 @@ def generate_reads_length_script():
         else:
             length_desc = "unknown_length"
 
-        output_dir = os.path.join(config['output_dir'], "Longueur-Reads")
+        output_dir = os.path.join(config['output_dir'], "Longueur_Reads")
         log_file = f"{output_dir}/reads_length_log.txt"
         report_file = f"{output_dir}/reads_length_report.html"
         status_file = f"{output_dir}/reads_length_status.txt"
@@ -139,7 +139,7 @@ def download_reads_length_script():
         else:
             length_desc = "unknown_length"
 
-        output_dir = os.path.join(config['output_dir'], "Longueur-Reads")
+        output_dir = os.path.join(config['output_dir'], "Longueur_Reads")
         log_file = f"{output_dir}/reads_length_log.txt"
         report_file = f"{output_dir}/reads_length_report.html"
         status_file = f"{output_dir}/reads_length_status.txt"

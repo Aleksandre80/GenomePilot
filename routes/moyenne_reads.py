@@ -49,7 +49,7 @@ def generate_moyenne_reads_script():
         bam_basename = bam_filename.replace('.bam', '')
         bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
 
-        output_dir = os.path.join(config['output_dir'], "Moyenne-Reads")
+        output_dir = os.path.join(config['output_dir'], "Moyenne_Reads")
         log_file = f"{output_dir}/moyenne_reads_log.txt"
         report_file = f"{output_dir}/moyenne_reads_report.html"
         status_file = f"{output_dir}/moyenne_reads_status.txt"
@@ -107,7 +107,7 @@ def download_moyenne_reads_script():
         bam_basename = bam_filename.replace('.bam', '')
         bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
 
-        output_dir = os.path.join(config['output_dir'], "Moyenne-Reads")
+        output_dir = os.path.join(config['output_dir'], "Moyenne_Reads")
         log_file = f"{output_dir}/moyenne_reads_log.txt"
         report_file = f"{output_dir}/moyenne_reads_report.html"
         status_file = f"{output_dir}/moyenne_reads_status.txt"

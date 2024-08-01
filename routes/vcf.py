@@ -53,7 +53,7 @@ def generate_vcf_script():
         if qscore_match:
             qscore = qscore_match.group(1)
         
-        vcf_directory = os.path.join(config['output_dir'], f"VCF-q{qscore}")
+        vcf_directory = os.path.join(config['output_dir'], f"VCF_q{qscore}")
         log_file = f"{vcf_directory}/vcf_log.txt"
         report_file = f"{vcf_directory}/vcf_report.html"
         status_file = f"{vcf_directory}/vcf_status.txt"
@@ -109,7 +109,7 @@ def download_vcf_script():
         if qscore_match:
             qscore = qscore_match.group(1)
         
-        vcf_directory = os.path.join(config['output_dir'], f"VCF-q{qscore}")
+        vcf_directory = os.path.join(config['output_dir'], f"VCF_q{qscore}")
         log_file = f"{vcf_directory}/vcf_log.txt"
         report_file = f"{vcf_directory}/vcf_report.html"
         status_file = f"{vcf_directory}/vcf_status.txt"

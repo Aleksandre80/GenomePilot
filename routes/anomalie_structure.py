@@ -45,7 +45,7 @@ def generate_anomalie_structure_script():
         bam_filename = os.path.basename(config['bam_file'])
         bam_basename = bam_filename.replace('.bam', '')
         
-        output_dir = os.path.join(config['output_dir'], "Anomalie-Structure")
+        output_dir = os.path.join(config['output_dir'], "Anomalie_Structure")
         log_file = f"{output_dir}/anomalie_structure_log.txt"
         report_file = f"{output_dir}/anomalie_structure_report.html"
         status_file = f"{output_dir}/anomalie_structure_status.txt"
@@ -93,7 +93,7 @@ def download_anomalie_structure_script():
         bam_filename = os.path.basename(config['bam_file'])
         bam_basename = bam_filename.replace('.bam', '')
         
-        output_dir = os.path.join(config['output_dir'], "Anomalie-Structure")
+        output_dir = os.path.join(config['output_dir'], "Anomalie_Structure")
         log_file = f"{output_dir}/anomalie_structure_log.txt"
         report_file = f"{output_dir}/anomalie_structure_report.html"
         status_file = f"{output_dir}/anomalie_structure_status.txt"

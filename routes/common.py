@@ -80,3 +80,7 @@ def running_workflows_count():
 @common_bp.route('/methylation-hub')
 def methylation():
     return render_template('methylation-hub.html')
+
+@common_bp.route('/hierarchy')
+def hierarchy():
+    return render_template('templates-pipelines.html')

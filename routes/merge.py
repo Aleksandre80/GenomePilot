@@ -42,7 +42,7 @@ def bam_merger():
 def generate_bam_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_merge:
-        merge_dir = f"{config['output_dir']}/merge-BAM"
+        merge_dir = f"{config['output_dir']}/Merge_BAM"
         log_file = f"{merge_dir}/merge_log.txt"
         report_file = f"{merge_dir}/merge_report.html"
         status_file = f"{merge_dir}/merge_status.txt"
@@ -78,7 +78,7 @@ def generate_bam_script():
 def download_bam_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_merge:
-        merge_dir = f"{config['output_dir']}/merge-BAM"
+        merge_dir = f"{config['output_dir']}/Merge_BAM"
         log_file = f"{merge_dir}/merge_log.txt"
         report_file = f"{merge_dir}/merge_report.html"
         status_file = f"{merge_dir}/merge_status.txt"
