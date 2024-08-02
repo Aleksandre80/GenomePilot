@@ -175,7 +175,15 @@ def delete_configuration_vcf():
 @role_requis('superadmin')
 def handle_vcf_script():
     if request.method == 'POST':
-        vcf_directory = os.path.join(configurations_vcf[-1]['output_dir'], f"VCF_q{configurations_vcf[-1]['qscore']}")
+        bam_filename = configurations_vcf[-1]['bam_file']  # Suppose que le nom du fichier BAM est dans les configurations_vcf
+        qscore_match = re.search(r'_q(\d+)\.bam$', bam_filename)
+        
+        if not qscore_match:
+            return jsonify(success=False, message="Unable to extract qscore from BAM filename."), 400
+
+        qscore = qscore_match.group(1)
+
+        vcf_directory = os.path.join(configurations_vcf[-1]['output_dir'], f"VCF_q{qscore}")
         new_workflow = Workflow(name="VCF Generation", status="Running", start_time=datetime.utcnow(), output_dir=vcf_directory)
         db.session.add(new_workflow)
         db.session.commit()
