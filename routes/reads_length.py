@@ -139,7 +139,8 @@ def download_reads_length_script():
         if config['length_option'] == 'sup':
             length_desc = f"sup_{config['min_length']}"
         elif config['length_option'] == 'between':
-            length_desc = f"between_{config['min_length_between']}_{config['max_length_between']}"
+            # Assurez-vous que les clés 'min_length_between' et 'max_length_between' sont correctement récupérées
+            length_desc = f"between_{config['min_length']}_{config['max_length']}"
         else:
             length_desc = "unknown_length"
 
@@ -157,7 +158,7 @@ def download_reads_length_script():
         if config['length_option'] == 'sup':
             script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || length($10) >= {config['min_length']}) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
         elif config['length_option'] == 'between':
-            script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || (length($10) >= {config['min_length_between']} && length($10) <= {config['max_length_between']})) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
+            script_content += f"samtools view -h \"{config['input_file']}\" | awk '{{if($1 ~ /^@/ || (length($10) >= {config['min_length']} && length($10) <= {config['max_length']})) print}}' | samtools view -b -o \"{filtered_bam}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ -f \"{filtered_bam}\" ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - BAM filtering by read length completed and {bam_basename}_{length_desc}.bam generated.\" >> \"{log_file}\"\n"
