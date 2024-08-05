@@ -162,7 +162,7 @@ def handle_cible_reads_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            status_file = configurations_cible_reads[-1]['output_dir'] + "/cible_reads_status.txt"
+            status_file = configurations_cible_reads[-1]['output_dir'] + "/Filtre_Regions_Cibles/cible_reads_status.txt"
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
                     status_info = file.read().strip()
