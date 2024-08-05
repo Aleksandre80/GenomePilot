@@ -194,7 +194,7 @@ def handle_reads_length_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            status_file = configurations_reads_length[-1]['output_dir'] + "/reads_length_status.txt"
+            status_file = configurations_reads_length[-1]['output_dir'] + "/Longueur_Reads/reads_length_status.txt"
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
                     status_info = file.read().strip()
