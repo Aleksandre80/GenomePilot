@@ -159,7 +159,7 @@ def handle_anomalie_structure_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            status_file = configurations_anomalie_structure[-1]['output_dir'] + "Anomalie_Structure/anomalie_structure_status.txt"
+            status_file = configurations_anomalie_structure[-1]['output_dir'] + "/Anomalie_Structure/anomalie_structure_status.txt"
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
                     status_info = file.read().strip()
