@@ -82,16 +82,13 @@ def generate_anomalie_structure_script():
     return jsonify(script=escaped_script_content)
 
 
-
-
-
-
 @anomalie_structure_bp.route('/download_anomalie_structure_script', methods=['GET'])
 @role_requis('superadmin')
 def download_anomalie_structure_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_anomalie_structure:
-        bam_filename = os.path.basename(config['bam_file'])
+        bam_path = config['input_dir']
+        bam_filename = os.path.basename(bam_path)
         bam_basename = bam_filename.replace('.bam', '')
         
         output_dir = os.path.join(config['output_dir'], "Anomalie_Structure")
@@ -100,14 +97,14 @@ def download_anomalie_structure_script():
         status_file = f"{output_dir}/anomalie_structure_status.txt"
         output_vcf_path = os.path.join(output_dir, f"{bam_basename}.vcf")
 
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Anomalie Structure analysis for BAM file {config['bam_file']}\" >> \"{log_file}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Anomalie Structure analysis for BAM file {bam_path}\" >> \"{log_file}\"\n"
         script_content += f"source ~/.pyenv/versions/sniffles-env/bin/activate\n"
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"cd /usr/local/bin/Sniffles-2.4\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Environment activated and directory changed to /usr/local/bin/Sniffles-2.4\" >> \"{log_file}\"\n"
         
         # Commande pour générer le fichier VCF
-        script_content += f"sniffles --input \"{config['bam_file']}\" --vcf \"{output_vcf_path}\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"sniffles --input \"{bam_path}\" --vcf \"{output_vcf_path}\" >> \"{log_file}\" 2>&1\n"
         
         script_content += f"if [ -f \"{output_vcf_path}\" ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Anomalie Structure analysis completed and {bam_basename}.vcf generated.\" >> \"{log_file}\"\n"

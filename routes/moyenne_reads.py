@@ -45,7 +45,8 @@ def moyenne_reads():
 def generate_moyenne_reads_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_moyenne_reads:
-        bam_filename = os.path.basename(config['bam_file'])
+        bam_path = config['input_dir']
+        bam_filename = os.path.basename(bam_path)
         bam_basename = bam_filename.replace('.bam', '')
         bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
 
@@ -56,12 +57,12 @@ def generate_moyenne_reads_script():
         coverage_txt = f"{output_dir}/{bam_basename}_{bed_filename}.txt"
         coverage_csv = f"{output_dir}/{bam_basename}_{bed_filename}.csv"
 
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Calculating reads average for BAM file {config['bam_file']} and BED file {config['bed_file']}\" >> \"{log_file}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Calculating reads average for BAM file {bam_path} and BED file {config['bed_file']}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour calculer la moyenne des reads
-        script_content += f"bedtools coverage -a \"{config['bed_file']}\" -b \"{config['bam_file']}\" > \"{coverage_txt}\" 2>> \"{log_file}\"\n"
+        script_content += f"bedtools coverage -a \"{config['bed_file']}\" -b \"{bam_path}\" > \"{coverage_txt}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ -f \"{coverage_txt}\" ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average completed and {bam_basename}_{bed_filename}.txt generated.\" >> \"{log_file}\"\n"
@@ -95,15 +96,13 @@ def generate_moyenne_reads_script():
     return jsonify(script=escaped_script_content)
 
 
-
-
-
 @moyenne_reads_bp.route('/download_moyenne_reads_script', methods=['GET'])
 @role_requis('superadmin')
 def download_moyenne_reads_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_moyenne_reads:
-        bam_filename = os.path.basename(config['bam_file'])
+        bam_path = config['input_dir']
+        bam_filename = os.path.basename(bam_path)
         bam_basename = bam_filename.replace('.bam', '')
         bed_filename = os.path.basename(config['bed_file']).replace('.bed', '')
 
@@ -114,12 +113,12 @@ def download_moyenne_reads_script():
         coverage_txt = f"{output_dir}/{bam_basename}_{bed_filename}.txt"
         coverage_csv = f"{output_dir}/{bam_basename}_{bed_filename}.csv"
 
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Calculating reads average for BAM file {config['bam_file']} and BED file {config['bed_file']}\" >> \"{log_file}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting Calculating reads average for BAM file {bam_path} and BED file {config['bed_file']}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour calculer la moyenne des reads
-        script_content += f"bedtools coverage -a \"{config['bed_file']}\" -b \"{config['bam_file']}\" > \"{coverage_txt}\" 2>> \"{log_file}\"\n"
+        script_content += f"bedtools coverage -a \"{config['bed_file']}\" -b \"{bam_path}\" > \"{coverage_txt}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ -f \"{coverage_txt}\" ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Calculating reads average completed and {bam_basename}_{bed_filename}.txt generated.\" >> \"{log_file}\"\n"
