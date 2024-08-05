@@ -184,7 +184,7 @@ def handle_moyenne_reads_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            status_file = configurations_moyenne_reads[-1]['output_dir'] + "/moyenne_reads_status.txt"
+            status_file = configurations_moyenne_reads[-1]['output_dir'] + "/Moyenne_Reads/moyenne_reads_status.txt"
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
                     status_info = file.read().strip()
