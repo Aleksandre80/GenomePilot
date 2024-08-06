@@ -65,8 +65,8 @@ def generate_coverage_script():
         
         # Commande pour calculer la moyenne de couverture
         script_content += f"awk 'BEGIN {{ FS = \"\\t\"; OFS = \"\\t\"; }} " + \
-                          f"{{ coverage += $6; count += 1; }} " + \
-                          f"END {{ if (count > 0) print \"Average coverage: \", coverage / count; }}' " + \
+                          f"{{ region = $1 \":\" $2 \"-\" $3 \" \" $4; coverage[region] += $6; count[region] += 1; }} " + \
+                          f"END {{ for (r in coverage) {{ avg_coverage = coverage[r] / count[r]; print r, avg_coverage; }} }}' " + \
                           f"\"{coverage_output}\" > \"{avg_coverage_output}\" 2>> \"{log_file}\"\n"
 
         script_content += f"if [ -f \"{avg_coverage_output}\" ]; then\n"
@@ -80,7 +80,7 @@ def generate_coverage_script():
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Coverage Calculation Log Report</title></head><body><div class=\"log-container\"><h1>Coverage Calculation Log Report</h1>' > \"{report_file}\"\n"
         script_content += f"while IFS= read -r line; do\n"
-        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
+        script_content += f"    echo \"<div class=\'log-entry\'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
     
@@ -88,6 +88,7 @@ def generate_coverage_script():
     escaped_script_content = json.dumps(script_content)
 
     return jsonify(script=escaped_script_content)
+
 
 @coverage_bp.route('/download_coverage_script', methods=['GET'])
 @role_requis('superadmin')
@@ -114,8 +115,8 @@ def download_coberage_script():
         
         # Commande pour calculer la moyenne de couverture
         script_content += f"awk 'BEGIN {{ FS = \"\\t\"; OFS = \"\\t\"; }} " + \
-                          f"{{ coverage += $6; count += 1; }} " + \
-                          f"END {{ if (count > 0) print \"Average coverage: \", coverage / count; }}' " + \
+                          f"{{ region = $1 \":\" $2 \"-\" $3 \" \" $4; coverage[region] += $6; count[region] += 1; }} " + \
+                          f"END {{ for (r in coverage) {{ avg_coverage = coverage[r] / count[r]; print r, avg_coverage; }} }}' " + \
                           f"\"{coverage_output}\" > \"{avg_coverage_output}\" 2>> \"{log_file}\"\n"
 
         script_content += f"if [ -f \"{avg_coverage_output}\" ]; then\n"
@@ -129,7 +130,7 @@ def download_coberage_script():
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Coverage Calculation Log Report</title></head><body><div class=\"log-container\"><h1>Coverage Calculation Log Report</h1>' > \"{report_file}\"\n"
         script_content += f"while IFS= read -r line; do\n"
-        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
+        script_content += f"    echo \"<div class=\'log-entry\'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
     
