@@ -54,11 +54,17 @@ def generate_methylation_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     
     for config in configurations_methylation:
-        log_file = f"{config['output_dir']}/methylation_log.txt"
-        report_file = f"{config['output_dir']}/methylation_report.html"
+        ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
+        model_basename = os.path.basename(config['methylationModelBasic']).replace('.bin', '')
+        
+        output_dir = os.path.join(config['output_dir'], "Methylation")
+        log_file = f"{output_dir}/methylation_log.txt"
+        report_file = f"{output_dir}/methylation_report.html"
+        status_file = f"{output_dir}/methylation_status.txt"
+        output_bam = f"{output_dir}/{ref_basename}_{model_basename}.bam"
         
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting methylation analysis for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter la méthylation
@@ -67,12 +73,14 @@ def generate_methylation_script():
         script_content += f"    \"{config['input_dir']}\" \\\n"
         script_content += f"    --modified-bases-models \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}\" \\\n"
         script_content += f"    --reference \"{config['ref_genome']}\" \\\n"
-        script_content += f"    > \"{config['output_dir']}/basecalls.bam\" 2>> \"{log_file}\"\n"
+        script_content += f"    > \"{output_bam}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis completed successfully.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis failed.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
         # Generate HTML report
@@ -90,16 +98,23 @@ def generate_methylation_script():
 
 
 
+
 @methylation_bp.route('/download_methylation_script', methods=['GET'])
 @role_requis('superadmin')
 def download_methylation_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_methylation:
-        log_file = f"{config['output_dir']}/methylation_log.txt"
-        report_file = f"{config['output_dir']}/methylation_report.html"
+        ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
+        model_basename = os.path.basename(config['methylationModelBasic']).replace('.bin', '')
+        
+        output_dir = os.path.join(config['output_dir'], "Methylation")
+        log_file = f"{output_dir}/methylation_log.txt"
+        report_file = f"{output_dir}/methylation_report.html"
+        status_file = f"{output_dir}/methylation_status.txt"
+        output_bam = f"{output_dir}/{ref_basename}_{model_basename}.bam"
         
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting methylation analysis for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter la méthylation
@@ -108,12 +123,14 @@ def download_methylation_script():
         script_content += f"    \"{config['input_dir']}\" \\\n"
         script_content += f"    --modified-bases-models \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}\" \\\n"
         script_content += f"    --reference \"{config['ref_genome']}\" \\\n"
-        script_content += f"    > \"{config['output_dir']}/basecalls.bam\" 2>> \"{log_file}\"\n"
+        script_content += f"    > \"{output_bam}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis completed successfully.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis failed.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
         # Generate HTML report
@@ -121,7 +138,7 @@ def download_methylation_script():
         script_content += f"while IFS= read -r line; do\n"
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
-        script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"  
+        script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
         
     script_path = '/data/Script_Site/tmp/methylation_script.sh'
     with open(script_path, 'w') as file:
@@ -161,7 +178,7 @@ def handle_methylation_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            status_file = configurations_methylation[-1]['output_dir'] + "/methylation_status.txt"
+            status_file = configurations_methylation[-1]['output_dir'] + "/Methylation/methylation_status.txt"
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
                     status_info = file.read().strip()

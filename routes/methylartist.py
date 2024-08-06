@@ -50,27 +50,26 @@ def generate_methylartist_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate methplotlib_env\n\n"
     
     for config in configurations_methylartist:
-        log_file = f"{config['output_dir']}/methylartist_log.txt"
-        report_file = f"{config['output_dir']}/methylartist_report.html"
+        output_dir = os.path.join(config['output_dir'], "MethylArtist")
+        log_file = f"{output_dir}/methylartist_log.txt"
+        report_file = f"{output_dir}/methylartist_report.html"
+        status_file = f"{output_dir}/methylartist_status.txt"
         input_bam = config['input_file']  # Using input_file directly from the config
         ref_bed = config['ref_bed']
         ref_genome = config['ref_genome']
-        output_dir = config['output_dir']
         
         bam_basename = os.path.basename(input_bam).replace('.bam', '')
         bed_basename = os.path.basename(ref_bed).replace('.bed', '')
-        output_tsv = f"{config['output_dir']}/{bed_basename}.{bam_basename}.segmeth.tsv"
-        output_png = f"{config['output_dir']}/{bed_basename}.{bam_basename}.png"
-        output_dir = f"{config['output_dir']}"
-        status_file = f"{output_dir}/methylartist_status.txt"
+        output_tsv = f"{output_dir}/{bed_basename}.{bam_basename}.segmeth.tsv"
+        output_png = f"{output_dir}/{bed_basename}.{bam_basename}.png"
         
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting MethylArtist analysis for input file {input_bam}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p {output_dir} \n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter methylartist segmeth
-        script_content +=  f"cd {output_dir} \n"
-        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG \n"
+        script_content += f"cd {output_dir} \n"
+        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG > \"{output_tsv}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth completed successfully.\" >> \"{log_file}\"\n"
@@ -80,11 +79,14 @@ def generate_methylartist_script():
         
         script_content += f"    if [ $? -eq 0 ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - segplot completed successfully.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    else\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - segplot failed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    fi\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth failed.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
         # Generate HTML report
@@ -101,35 +103,31 @@ def generate_methylartist_script():
 
 
 
-
-
-
 @methylartist_bp.route('/download_methylartist_script', methods=['GET'])
 @role_requis('superadmin')
 def download_methylartist_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate methplotlib_env\n\n"
     for config in configurations_methylartist:
-        log_file = f"{config['output_dir']}/methylartist_log.txt"
-        report_file = f"{config['output_dir']}/methylartist_report.html"
+        output_dir = os.path.join(config['output_dir'], "MethylArtist")
+        log_file = f"{output_dir}/methylartist_log.txt"
+        report_file = f"{output_dir}/methylartist_report.html"
+        status_file = f"{output_dir}/methylartist_status.txt"
         input_bam = config['input_file']  # Using input_file directly from the config
         ref_bed = config['ref_bed']
         ref_genome = config['ref_genome']
-        output_dir = config['output_dir']
         
         bam_basename = os.path.basename(input_bam).replace('.bam', '')
         bed_basename = os.path.basename(ref_bed).replace('.bed', '')
-        output_tsv = f"{config['output_dir']}/{bed_basename}.{bam_basename}.segmeth.tsv"
-        output_png = f"{config['output_dir']}/{bed_basename}.{bam_basename}.png"
-        output_dir = f"{config['output_dir']}"
-        status_file = f"{output_dir}/vcf_status.txt"
+        output_tsv = f"{output_dir}/{bed_basename}.{bam_basename}.segmeth.tsv"
+        output_png = f"{output_dir}/{bed_basename}.{bam_basename}.png"
         
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting MethylArtist analysis for input file {input_bam}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p {output_dir} \n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter methylartist segmeth
-        script_content +=  f"cd {output_dir} \n"
-        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG \n"
+        script_content += f"cd {output_dir} \n"
+        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG > \"{output_tsv}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth completed successfully.\" >> \"{log_file}\"\n"
@@ -139,11 +137,14 @@ def download_methylartist_script():
         
         script_content += f"    if [ $? -eq 0 ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - segplot completed successfully.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    else\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - segplot failed.\" >> \"{log_file}\"\n"
+        script_content += f"        echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    fi\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth failed.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
         # Generate HTML report
@@ -191,7 +192,7 @@ def handle_methylartist_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            status_file = configurations_methylartist[-1]['output_dir'] + "/methylartist_status.txt"
+            status_file = configurations_methylartist[-1]['output_dir'] + "/Methylartist/methylartist_status.txt"
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
                     status_info = file.read().strip()

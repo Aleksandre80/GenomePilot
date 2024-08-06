@@ -13,6 +13,7 @@ from .reads_length import reads_length_bp
 from .methylation import methylation_bp
 from .methylartist import methylartist_bp
 from .methylartist_violon import methylartist_violon_bp
+from.coverage import coverage_bp
 from .common import common_bp
 
 # Fonction pour enregistrer les Blueprints dans l'application Flask
@@ -30,4 +31,5 @@ def register_blueprints(app):
     app.register_blueprint(methylation_bp)
     app.register_blueprint(methylartist_bp)
     app.register_blueprint(methylartist_violon_bp)
+    app.register_blueprint(coverage_bp)
     
