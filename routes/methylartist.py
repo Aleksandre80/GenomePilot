@@ -50,7 +50,7 @@ def generate_methylartist_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate methplotlib_env\n\n"
     
     for config in configurations_methylartist:
-        output_dir = os.path.join(config['output_dir'], "MethylArtist")
+        output_dir = os.path.join(config['output_dir'], "Methylartist")
         log_file = f"{output_dir}/methylartist_log.txt"
         report_file = f"{output_dir}/methylartist_report.html"
         status_file = f"{output_dir}/methylartist_status.txt"
@@ -108,7 +108,7 @@ def generate_methylartist_script():
 def download_methylartist_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate methplotlib_env\n\n"
     for config in configurations_methylartist:
-        output_dir = os.path.join(config['output_dir'], "MethylArtist")
+        output_dir = os.path.join(config['output_dir'], "Methylartist")
         log_file = f"{output_dir}/methylartist_log.txt"
         report_file = f"{output_dir}/methylartist_report.html"
         status_file = f"{output_dir}/methylartist_status.txt"
