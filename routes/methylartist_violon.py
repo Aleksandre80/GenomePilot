@@ -124,11 +124,12 @@ def download_methylartist_violon_script():
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
-        # Commande pour exécuter methylartist_violon segmeth
+        # Commande pour exécuter methylartist segmeth
+        script_content += f"cd {output_dir} \n"
         script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG > \"{output_tsv}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - methylartist segmeth completed successfully.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth completed successfully.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter segplot
         script_content += f"    methylartist segplot -s \"{output_tsv}\" -v -o \"{output_png}\" 2>> \"{log_file}\"\n"
