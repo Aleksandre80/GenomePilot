@@ -43,13 +43,14 @@ def split_bed_creator():
 def generate_split_bed_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_split_bed:
+        output_dir = os.path.join(config['output_dir'], "Split_Bed")
         input_bed = config['input_bed']
         split_size = config.get('split_size', 1)  # Default to 1 if not provided
         input_bed_basename = os.path.basename(input_bed).replace('.bed', '')
-        output_bed = os.path.join(config['output_dir'], f"{input_bed_basename}_split_{split_size}.bed")
-        log_file = os.path.join(config['output_dir'], "bed_split_log.txt")
-        status_file = os.path.join(config['output_dir'], "bed_split_status.txt")
-        report_file = os.path.join(config['output_dir'], "bed_split_report.html")
+        output_bed = f"{output_dir}/{input_bed_basename}_split_{split_size}.bed"
+        log_file = f"{output_dir}/bed_split_log.txt"
+        status_file = f"{output_dir}/bed_split_status.txt"
+        report_file = f"{output_dir}/bed_split_report.html"
 
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting BED splitting for input file {input_bed} with split size {split_size}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p \"{config['output_dir']}\"\n"
