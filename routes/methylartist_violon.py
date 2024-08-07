@@ -61,7 +61,7 @@ def generate_methylartist_violon_script():
         bam_basename = os.path.basename(input_bam).replace('.bam', '')
         bed_basename = os.path.basename(ref_bed).replace('.bed', '')
         output_tsv = f"{output_dir}/{bed_basename}.{bam_basename}.tsv"
-        output_png = f"{output_dir}/{bed_basename}.{bam_basename}-violon.svg"
+        output_png = f"{output_dir}/{bed_basename}.{bam_basename}-violon.png"
         
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting MethylArtist analysis for input file {input_bam}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p {output_dir} \n"
