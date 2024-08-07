@@ -75,8 +75,7 @@ def generate_methylartist_violon_script():
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth completed successfully.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter segplot
-        script_content += f"    methylartist segplot -s \"{output_tsv}\" -o -v \"{output_png}\" 2>> \"{log_file}\"\n"
-        
+        script_content += f"    methylartist segplot -s \"{output_tsv}.segmeth\" -v -o \"{output_png}\" 2>> \"{log_file}\"\n"
         script_content += f"    if [ $? -eq 0 ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - segplot completed successfully.\" >> \"{log_file}\"\n"
         script_content += f"        echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
