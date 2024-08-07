@@ -108,6 +108,13 @@ class ConfigurationCoverage(db.Model):
     output_dir = db.Column(db.String(120), nullable=False)
     bed_file = db.Column(db.String(120), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class ConfigurationSplit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_bed = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
+    split_size = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Workflow(db.Model):
     id = db.Column(db.Integer, primary_key=True)

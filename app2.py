@@ -22,6 +22,7 @@ from routes.methylation import methylation_bp
 from routes.methylartist import methylartist_bp
 from routes.methylartist_violon import methylartist_violon_bp
 from routes.coverage import coverage_bp
+from routes.split_bed import split_bed_bp
 from routes.common import common_bp
 
 app.register_blueprint(basecalling_bp)
@@ -37,6 +38,7 @@ app.register_blueprint(methylation_bp)
 app.register_blueprint(methylartist_bp)
 app.register_blueprint(methylartist_violon_bp)
 app.register_blueprint(coverage_bp)
+app.register_blueprint(split_bed_bp)
 app.register_blueprint(common_bp)
 
 
