@@ -63,19 +63,19 @@ def generate_methylartist_violon_script():
         output_tsv = f"{output_dir}/{bed_basename}.{bam_basename}.tsv"
         output_png = f"{output_dir}/{bed_basename}.{bam_basename}-violon.svg"
         
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting methylartist_violon analysis for input file {input_bam}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{output_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting MethylArtist analysis for input file {input_bam}\" >> \"{log_file}\"\n"
+        script_content += f"mkdir -p {output_dir} \n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter methylartist segmeth
-        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG | tee \"{output_tsv}\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"cd {output_dir} \n"
+        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG > \"{output_tsv}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - methylartist segmeth completed successfully.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth completed successfully.\" >> \"{log_file}\"\n"
         
-        # Vérification si le fichier TSV contient des données avant d'exécuter segplot
-        script_content += f"if [ -s \"{output_tsv}\" ]; then\n"
-        script_content += f"    methylartist segplot -s \"{output_tsv}\" -v -o \"{output_png}\" 2>> \"{log_file}\"\n"
+        # Commande pour exécuter segplot
+        script_content += f"    methylartist segplot -s \"{output_tsv}\" -o -v \"{output_png}\" 2>> \"{log_file}\"\n"
         
         script_content += f"    if [ $? -eq 0 ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - segplot completed successfully.\" >> \"{log_file}\"\n"
@@ -85,17 +85,12 @@ def generate_methylartist_violon_script():
         script_content += f"        echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    fi\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - No data in TSV file, skipping segplot.\" >> \"{log_file}\"\n"
-        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-        script_content += f"fi\n"
-        
-        script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - methylartist segmeth failed.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth failed.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
         # Generate HTML report
-        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>methylartist Log Report</title></head><body><div class=\"log-container\"><h1>methylartist Log Report</h1>' > \"{report_file}\"\n"
+        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>MethylArtist Log Report</title></head><body><div class=\"log-container\"><h1>MethylArtist Log Report</h1>' > \"{report_file}\"\n"
         script_content += f"while IFS= read -r line; do\n"
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
@@ -127,19 +122,19 @@ def download_methylartist_violon_script():
         output_tsv = f"{output_dir}/{bed_basename}.{bam_basename}.tsv"
         output_png = f"{output_dir}/{bed_basename}.{bam_basename}-violon.svg"
         
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting methylartist_violon analysis for input file {input_bam}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{output_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting MethylArtist analysis for input file {input_bam}\" >> \"{log_file}\"\n"
+        script_content += f"mkdir -p {output_dir} \n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour exécuter methylartist segmeth
-        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG | tee \"{output_tsv}\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"cd {output_dir} \n"
+        script_content += f"methylartist segmeth -b \"{input_bam}\" -i \"{ref_bed}\" -p 32 --ref \"{ref_genome}\" --motif CG > \"{output_tsv}\" 2>> \"{log_file}\"\n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - methylartist segmeth completed successfully.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth completed successfully.\" >> \"{log_file}\"\n"
         
-        # Vérification si le fichier TSV contient des données avant d'exécuter segplot
-        script_content += f"if [ -s \"{output_tsv}\" ]; then\n"
-        script_content += f"    methylartist segplot -s \"{output_tsv}\" -v -o \"{output_png}\" 2>> \"{log_file}\"\n"
+        # Commande pour exécuter segplot
+        script_content += f"    methylartist segplot -s \"{output_tsv}\" -o -v \"{output_png}\" 2>> \"{log_file}\"\n"
         
         script_content += f"    if [ $? -eq 0 ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - segplot completed successfully.\" >> \"{log_file}\"\n"
@@ -149,17 +144,12 @@ def download_methylartist_violon_script():
         script_content += f"        echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"    fi\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - No data in TSV file, skipping segplot.\" >> \"{log_file}\"\n"
-        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-        script_content += f"fi\n"
-        
-        script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - methylartist segmeth failed.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - MethylArtist segmeth failed.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
         
         # Generate HTML report
-        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>methylartist Log Report</title></head><body><div class=\"log-container\"><h1>methylartist Log Report</h1>' > \"{report_file}\"\n"
+        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>MethylArtist Log Report</title></head><body><div class=\"log-container\"><h1>MethylArtist Log Report</h1>' > \"{report_file}\"\n"
         script_content += f"while IFS= read -r line; do\n"
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
