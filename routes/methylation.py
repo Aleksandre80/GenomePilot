@@ -21,8 +21,9 @@ def methylation():
         output_dir = request.form['output_dir']
         ref_genome = request.form['ref_genome']
         methylationModelMethyl = request.form['methylationModel']
+        kit = request.form['kit']
         
-        # Calculate the basic model from the selected methylation model
+        # Utilisez une expression régulière pour extraire le modèle de base
         methylationModelBasic = re.match(r"^(.*?@v\d+\.\d+\.\d+)", methylationModelMethyl).group(1)
         
         if not all([input_dir, output_dir]):
@@ -31,23 +32,26 @@ def methylation():
         configurations_methylation.append({
             "input_dir": input_dir,
             "output_dir": output_dir,
-            "ref_genome" : ref_genome,
-            "methylationModelBasic" : methylationModelBasic,
-            "methylationModelMethyl" : methylationModelMethyl
+            "ref_genome": ref_genome,
+            "methylationModelBasic": methylationModelBasic,
+            "methylationModelMethyl": methylationModelMethyl,
+            "kit": kit
         })
         
         configurations_methylation_db = ConfigurationMethylation(
             input_dir=input_dir,
             output_dir=output_dir,
-            ref_genome = ref_genome,
-            methylationModelBasic = methylationModelBasic,
-            methylationModelMethyl = methylationModelMethyl
+            ref_genome=ref_genome,
+            methylationModelBasic=methylationModelBasic,
+            methylationModelMethyl=methylationModelMethyl,
+            kit=kit
         )
         db.session.add(configurations_methylation_db)
         db.session.commit()
         
         return jsonify(success=True, message="Configuration added successfully.")
     return render_template('methylation.html')
+
 
 @methylation_bp.route('/generate_methylation_script', methods=['GET'])
 @role_requis('superadmin')
@@ -62,19 +66,29 @@ def generate_methylation_script():
         log_file = f"{output_dir}/methylation_log.txt"
         report_file = f"{output_dir}/methylation_report.html"
         status_file = f"{output_dir}/methylation_status.txt"
-        output_bam = f"{output_dir}/{ref_basename}_{model_basename}.bam"
         
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting methylation analysis for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
-        # Commande pour exécuter la méthylation
-        script_content += f"/home/grid/dorado-0.7.2-linux-x64/bin/dorado basecaller \\\n"
+        # Démultiplexage et basecalling avec appel de bases modifiées
+        script_content += f"/home/grid/dorado-0.7.2-linux-x64/bin/dorado basecaller -x cuda:0 --emit-fastq --emit-mappings \\\n"
         script_content += f"    \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelBasic']}\" \\\n"
         script_content += f"    \"{config['input_dir']}\" \\\n"
         script_content += f"    --modified-bases-models \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}\" \\\n"
         script_content += f"    --reference \"{config['ref_genome']}\" \\\n"
-        script_content += f"    > \"{output_bam}\" 2>> \"{log_file}\"\n"
+        script_content += f"    --kit {config['kit_name']} \\\n"
+        script_content += f"    --output-dir \"{output_dir}\" 2>> \"{log_file}\"\n"
+        
+        # Boucle pour aligner les FASTQ générés et générer les fichiers BAM
+        script_content += f"for fastq_file in \"{output_dir}\"/*.fastq; do\n"
+        script_content += f"    bam_basename=$(basename \"$fastq_file\" .fastq)\n"
+        script_content += f"    bam_file=\"{output_dir}/${{bam_basename}}.bam\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_file to reference genome...\" >> \"{log_file}\"\n"
+        script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"$bam_file\" 2>> \"{log_file}\"\n"
+        script_content += f"    samtools index \"$bam_file\" 2>> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for $bam_file\" >> \"{log_file}\"\n"
+        script_content += f"done\n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis completed successfully.\" >> \"{log_file}\"\n"
@@ -109,19 +123,29 @@ def download_methylation_script():
         log_file = f"{output_dir}/methylation_log.txt"
         report_file = f"{output_dir}/methylation_report.html"
         status_file = f"{output_dir}/methylation_status.txt"
-        output_bam = f"{output_dir}/{ref_basename}_{model_basename}.bam"
         
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting methylation analysis for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
-        # Commande pour exécuter la méthylation
-        script_content += f"/home/grid/dorado-0.7.2-linux-x64/bin/dorado basecaller \\\n"
+        # Démultiplexage et basecalling avec appel de bases modifiées
+        script_content += f"/home/grid/dorado-0.7.2-linux-x64/bin/dorado basecaller -x cuda:0 --emit-fastq --emit-mappings \\\n"
         script_content += f"    \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelBasic']}\" \\\n"
         script_content += f"    \"{config['input_dir']}\" \\\n"
         script_content += f"    --modified-bases-models \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}\" \\\n"
         script_content += f"    --reference \"{config['ref_genome']}\" \\\n"
-        script_content += f"    > \"{output_bam}\" 2>> \"{log_file}\"\n"
+        script_content += f"    --kit {config['kit_name']} \\\n"
+        script_content += f"    --output-dir \"{output_dir}\" 2>> \"{log_file}\"\n"
+        
+        # Boucle pour aligner les FASTQ générés et générer les fichiers BAM
+        script_content += f"for fastq_file in \"{output_dir}\"/*.fastq; do\n"
+        script_content += f"    bam_basename=$(basename \"$fastq_file\" .fastq)\n"
+        script_content += f"    bam_file=\"{output_dir}/${{bam_basename}}.bam\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_file to reference genome...\" >> \"{log_file}\"\n"
+        script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"$bam_file\" 2>> \"{log_file}\"\n"
+        script_content += f"    samtools index \"$bam_file\" 2>> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for $bam_file\" >> \"{log_file}\"\n"
+        script_content += f"done\n"
         
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis completed successfully.\" >> \"{log_file}\"\n"

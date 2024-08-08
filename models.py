@@ -84,6 +84,7 @@ class ConfigurationMethylation(db.Model):
     ref_genome = db.Column(db.String(120), nullable=False)
     methylationModelBasic = db.Column(db.String(120), nullable=False)
     methylationModelMethyl = db.Column(db.String(120), nullable=False)
+    kit = db.Column(db.String(120), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     
 class ConfigurationMethylartist(db.Model):
