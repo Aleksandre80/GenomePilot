@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from extensions import db
 from models import ConfigurationPhredQuality
 from utils import role_requis
+import os
 
 phred_quality_bp = Blueprint('phred_quality_bp', __name__)
 
@@ -52,9 +53,10 @@ def phred_quality():
 def generate_anomalie_structure_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_phred_quality:
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        output_dir = os.path.join(config['output_dir'], "Phred_Quality")
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"Starting Calculing reads average...\"\n"
-        script_content += f"python bam_quality_filter.py \"{config['input_file']}\" \"{config['output_dir']}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{config['logs']}/logs_phred_filter.log\"\n"
+        script_content += f"python bam_quality_filter.py \"{config['input_file']}\" \"{output_dir}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{output_dir}/logs_phred_filter.log\"\n"
         script_content += f"echo \"Calcul reads average completed.\"\n"
         #python bam_quality_filter.py exemple.bam filtre.bam chr1 100000 100500 30 log_qualite.log
     return jsonify(script=script_content)
@@ -64,9 +66,10 @@ def generate_anomalie_structure_script():
 def download_phred_quality_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_phred_quality:
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        output_dir = os.path.join(config['output_dir'], "Phred_Quality")
+        script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"Starting Calculing reads average...\"\n"
-        script_content += f"python bam_quality_filter.py \"{config['input_file']}\" \"{config['output_dir']}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{config['logs']}/logs_phred_filter.log\"\n"
+        script_content += f"python bam_quality_filter.py \"{config['input_file']}\" \"{output_dir}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{output_dir}/logs_phred_filter.log\"\n"
         script_content += f"echo \"Calcul reads average completed.\"\n"
         
     script_path = '/data/Script_Site/tmp/bam_quality_filter.sh'

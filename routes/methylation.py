@@ -21,8 +21,6 @@ def methylation():
         output_dir = request.form['output_dir']
         ref_genome = request.form['ref_genome']
         methylationModelMethyl = request.form['methylationModel']
-        kit_name = request.form['kit_name']
-        qs_scores = request.form['qs_scores']
         
         # Utilisez une expression régulière pour extraire le modèle de base
         methylationModelBasic = re.match(r"^(.*?@v\d+\.\d+\.\d+)", methylationModelMethyl).group(1)
@@ -36,8 +34,6 @@ def methylation():
             "ref_genome": ref_genome,
             "methylationModelBasic": methylationModelBasic,
             "methylationModelMethyl": methylationModelMethyl,
-            "kit_name": kit_name,
-            "qs_scores": qs_scores
         })
         
         configurations_methylation_db = ConfigurationMethylation(
@@ -46,8 +42,6 @@ def methylation():
             ref_genome=ref_genome,
             methylationModelBasic=methylationModelBasic,
             methylationModelMethyl=methylationModelMethyl,
-            kit_name=kit_name,
-            qs_scores=qs_scores
         )
         db.session.add(configurations_methylation_db)
         db.session.commit()
@@ -62,55 +56,41 @@ def generate_methylation_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     
     for config in configurations_methylation:
-        log_file = f"{config['output_dir']}/methylation_log.txt"
-        report_file = f"{config['output_dir']}/methylation_report.html"
-        status_file = f"{config['output_dir']}/methylation_status.txt"
-        
-        qs_scores_list = config['qs_scores'].split()
-        ref_basename = os.path.basename(config['ref_genome']).replace('.mmi', '')
+        ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
         model_basename = os.path.basename(config['methylationModelBasic']).replace('.bin', '')
-        kit_name = config['kit_name']
-
-        for qscore in qs_scores_list:
-            output_dir = f"${{BASE_OUTPUT_DIR}}/demultiplexed_q{qscore}"
-            script_content += f"BASE_OUTPUT_DIR=\"{config['output_dir']}\"\n"
-            script_content += "mkdir -p \"${BASE_OUTPUT_DIR}\"\n"
-            script_content += f"""
-DORADO_BIN="/home/grid/dorado-0.7.2-linux-x64/bin/dorado"
-MODEL_PATH="/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelBasic']}"
-MODIFIED_BASES_MODELS="/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}"
-REF_GENOME="{config['ref_genome']}"
-INPUT_DIR="{config['input_dir']}"
-OUTPUT_DIR="{output_dir}"
-mkdir -p "${{OUTPUT_DIR}}"
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling and demultiplexing for Q-score {qscore}" >> \"{log_file}\"
-${{DORADO_BIN}} basecaller -x cuda:0 --min-qscore "{qscore}" --no-trim --emit-fastq --modified-bases-models ${{MODIFIED_BASES_MODELS}} ${{MODEL_PATH}} ${{INPUT_DIR}} | \\
-${{DORADO_BIN}} demux --kit-name "{kit_name}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir']} with Q-score {qscore}" >> \"{log_file}\"
-"""
-            script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
-            script_content += f"    barcode_name=$(basename \"$fastq_file\" | cut -d'_' -f2 | cut -d'.' -f1)\n"
-            script_content += f"    bam_file=\"{ref_basename}_{model_basename}_{kit_name}_${{barcode_name}}_q{qscore}.bam\"\n"
-            script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning ${{fastq_file}} to reference genome...\" >> \"{log_file}\"\n"
-            script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"${{OUTPUT_DIR}}/$bam_file\"\n"
-            script_content += f"    samtools index \"${{OUTPUT_DIR}}/$bam_file\"\n"
-            script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for ${{bam_file}}\" >> \"{log_file}\"\n"
-            script_content += "done\n"
-    
-    script_content += f"if [ $? -eq 0 ]; then\n"
-    script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-    script_content += f"else\n"
-    script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-    script_content += f"fi\n"
-    
-    script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - All processes are complete.\" >> \"{log_file}\"\n"
-    
-    # Generate HTML report
-    script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Basecalling Log Report</title></head><body><div class=\"log-container\"><h1>Basecalling Log Report</h1>' > \"{report_file}\"\n"
-    script_content += f"while IFS= read -r line; do\n"
-    script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
-    script_content += f"done < \"{log_file}\"\n"
-    script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
+        
+        output_dir = os.path.join(config['output_dir'], "Methylation")
+        log_file = f"{output_dir}/methylation_log.txt"
+        report_file = f"{output_dir}/methylation_report.html"
+        status_file = f"{output_dir}/methylation_status.txt"
+        output_bam = f"{output_dir}/{ref_basename}_{model_basename}.bam"
+        
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting methylation analysis for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
+        
+        # Commande pour exécuter la méthylation
+        script_content += f"/home/grid/dorado-0.7.2-linux-x64/bin/dorado basecaller \\\n"
+        script_content += f"    \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelBasic']}\" \\\n"
+        script_content += f"    \"{config['input_dir']}\" \\\n"
+        script_content += f"    --modified-bases-models \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}\" \\\n"
+        script_content += f"    --reference \"{config['ref_genome']}\" \\\n"
+        script_content += f"    > \"{output_bam}\" 2>> \"{log_file}\"\n"
+        
+        script_content += f"if [ $? -eq 0 ]; then\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis completed successfully.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"else\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis failed.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"fi\n"
+        
+        # Generate HTML report
+        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Methylation Log Report</title></head><body><div class=\"log-container\"><h1>Methylation Log Report</h1>' > \"{report_file}\"\n"
+        script_content += f"while IFS= read -r line; do\n"
+        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
+        script_content += f"done < \"{log_file}\"\n"
+        script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
     
     # Échapper les caractères spéciaux pour JSON
     escaped_script_content = json.dumps(script_content)
@@ -125,55 +105,41 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir'
 def download_methylation_script():
     script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_methylation:
-        log_file = f"{config['output_dir']}/methylation_log.txt"
-        report_file = f"{config['output_dir']}/methylation_report.html"
-        status_file = f"{config['output_dir']}/methylation_status.txt"
-        
-        qs_scores_list = config['qs_scores'].split()
-        ref_basename = os.path.basename(config['ref_genome']).replace('.mmi', '')
+        ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
         model_basename = os.path.basename(config['methylationModelBasic']).replace('.bin', '')
-        kit_name = config['kit_name']
-
-        for qscore in qs_scores_list:
-            output_dir = f"${{BASE_OUTPUT_DIR}}/demultiplexed_q{qscore}"
-            script_content += f"BASE_OUTPUT_DIR=\"{config['output_dir']}\"\n"
-            script_content += "mkdir -p \"${BASE_OUTPUT_DIR}\"\n"
-            script_content += f"""
-DORADO_BIN="/home/grid/dorado-0.7.2-linux-x64/bin/dorado"
-MODEL_PATH="/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelBasic']}"
-MODIFIED_BASES_MODELS="/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}"
-REF_GENOME="{config['ref_genome']}"
-INPUT_DIR="{config['input_dir']}"
-OUTPUT_DIR="{output_dir}"
-mkdir -p "${{OUTPUT_DIR}}"
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting basecalling and demultiplexing for Q-score {qscore}" >> \"{log_file}\"
-${{DORADO_BIN}} basecaller -x cuda:0 --min-qscore "{qscore}" --no-trim --emit-fastq --modified-bases-models ${{MODIFIED_BASES_MODELS}} ${{MODEL_PATH}} ${{INPUT_DIR}} | \\
-${{DORADO_BIN}} demux --kit-name "{kit_name}" --emit-fastq --output-dir "${{OUTPUT_DIR}}"
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Processing complete for {config['input_dir']} with Q-score {qscore}" >> \"{log_file}\"
-"""
-            script_content += f"for fastq_file in \"${{OUTPUT_DIR}}\"/*.fastq; do\n"
-            script_content += f"    barcode_name=$(basename \"$fastq_file\" | cut -d'_' -f2 | cut -d'.' -f1)\n"
-            script_content += f"    bam_file=\"{ref_basename}_{model_basename}_{kit_name}_${{barcode_name}}_q{qscore}.bam\"\n"
-            script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Aligning ${{fastq_file}} to reference genome...\" >> \"{log_file}\"\n"
-            script_content += f"    minimap2 -ax map-ont \"{config['ref_genome']}\" \"$fastq_file\" | samtools sort -o \"${{OUTPUT_DIR}}/$bam_file\"\n"
-            script_content += f"    samtools index \"${{OUTPUT_DIR}}/$bam_file\"\n"
-            script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Alignment and BAM conversion completed for ${{bam_file}}\" >> \"{log_file}\"\n"
-            script_content += "done\n"
-    
-    script_content += f"if [ $? -eq 0 ]; then\n"
-    script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-    script_content += f"else\n"
-    script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-    script_content += f"fi\n"
-    
-    script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - All processes are complete.\" >> \"{log_file}\"\n"
-    
-    # Generate HTML report
-    script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Basecalling Log Report</title></head><body><div class=\"log-container\"><h1>Basecalling Log Report</h1>' > \"{report_file}\"\n"
-    script_content += f"while IFS= read -r line; do\n"
-    script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
-    script_content += f"done < \"{log_file}\"\n"
-    script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
+        
+        output_dir = os.path.join(config['output_dir'], "Methylation")
+        log_file = f"{output_dir}/methylation_log.txt"
+        report_file = f"{output_dir}/methylation_report.html"
+        status_file = f"{output_dir}/methylation_status.txt"
+        output_bam = f"{output_dir}/{ref_basename}_{model_basename}.bam"
+        
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting methylation analysis for input directory {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"mkdir -p \"{output_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
+        
+        # Commande pour exécuter la méthylation
+        script_content += f"/home/grid/dorado-0.7.2-linux-x64/bin/dorado basecaller \\\n"
+        script_content += f"    \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelBasic']}\" \\\n"
+        script_content += f"    \"{config['input_dir']}\" \\\n"
+        script_content += f"    --modified-bases-models \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}\" \\\n"
+        script_content += f"    --reference \"{config['ref_genome']}\" \\\n"
+        script_content += f"    > \"{output_bam}\" 2>> \"{log_file}\"\n"
+        
+        script_content += f"if [ $? -eq 0 ]; then\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis completed successfully.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"else\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Methylation analysis failed.\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"fi\n"
+        
+        # Generate HTML report
+        script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Methylation Log Report</title></head><body><div class=\"log-container\"><h1>Methylation Log Report</h1>' > \"{report_file}\"\n"
+        script_content += f"while IFS= read -r line; do\n"
+        script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
+        script_content += f"done < \"{log_file}\"\n"
+        script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
         
     script_path = '/data/Script_Site/tmp/methylation_script.sh'
     with open(script_path, 'w') as file:
