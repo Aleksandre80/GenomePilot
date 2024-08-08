@@ -7,6 +7,7 @@ import os
 import subprocess
 import shlex
 from datetime import datetime
+import re
 
 methylation_bp = Blueprint('methylation_bp', __name__)
 
@@ -22,7 +23,7 @@ def methylation():
         methylationModelMethyl = request.form['methylationModel']
         
         # Calculate the basic model from the selected methylation model
-        methylationModelBasic = methylationModelMethyl.split('_5mCG')[0]
+        methylationModelBasic = re.match(r"^(.*?@v\d+\.\d+\.\d+)", methylationModelMethyl).group(1)
         
         if not all([input_dir, output_dir]):
             return jsonify(success=False, message="Please specify both input and output directories.")

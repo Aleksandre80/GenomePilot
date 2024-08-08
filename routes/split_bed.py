@@ -89,13 +89,13 @@ def download_split_bed_script():
         input_bed = config['input_bed']
         split_size = config.get('split_size', 1)  # Default to 1 if not provided
         input_bed_basename = os.path.basename(input_bed).replace('.bed', '')
-        output_bed = os.path.join(f"{output_dir}/{input_bed_basename}_split_{split_size}.bed")
+        output_bed = f"{output_dir}/{input_bed_basename}_split_{split_size}.bed"
         log_file = f"{output_dir}/bed_split_log.txt"
         status_file = f"{output_dir}/bed_split_status.txt"
         report_file = f"{output_dir}/bed_split_report.html"
 
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting BED splitting for input file {input_bed} with split size {split_size}\" >> \"{log_file}\"\n"
-        script_content += f"mkdir -p \"{config['output_dir']}\"\n"
+        script_content += f"mkdir -p \{output_dir} \n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Commande pour diviser les régions du fichier BED
