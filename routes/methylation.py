@@ -97,13 +97,10 @@ def generate_methylation_script():
     return jsonify(script=escaped_script_content)
 
 
-
-
-
 @methylation_bp.route('/download_methylation_script', methods=['GET'])
 @role_requis('superadmin')
 def download_methylation_script():
-    script_content = "#!/bin/bash\n\n"
+    script_content = "#!/bin/bash\n\nsource /home/grid/miniconda3/etc/profile.d/conda.sh\nconda activate genomics\n\n"
     for config in configurations_methylation:
         ref_basename = os.path.basename(config['ref_genome']).replace('.fa', '')
         model_basename = os.path.basename(config['methylationModelBasic']).replace('.bin', '')
