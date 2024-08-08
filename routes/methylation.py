@@ -77,7 +77,7 @@ def generate_methylation_script():
         script_content += f"    \"{config['input_dir']}\" \\\n"
         script_content += f"    --modified-bases-models \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}\" \\\n"
         script_content += f"    --reference \"{config['ref_genome']}\" \\\n"
-        script_content += f"    --kit {config['kit_name']} \\\n"
+        script_content += f"    --kit {config['kit']} \\\n"
         script_content += f"    --output-dir \"{output_dir}\" 2>> \"{log_file}\"\n"
         
         # Boucle pour aligner les FASTQ générés et générer les fichiers BAM
@@ -134,7 +134,7 @@ def download_methylation_script():
         script_content += f"    \"{config['input_dir']}\" \\\n"
         script_content += f"    --modified-bases-models \"/home/grid/dorado-0.7.2-linux-x64/bin/{config['methylationModelMethyl']}\" \\\n"
         script_content += f"    --reference \"{config['ref_genome']}\" \\\n"
-        script_content += f"    --kit {config['kit_name']} \\\n"
+        script_content += f"    --kit {config['kit']} \\\n"
         script_content += f"    --output-dir \"{output_dir}\" 2>> \"{log_file}\"\n"
         
         # Boucle pour aligner les FASTQ générés et générer les fichiers BAM
