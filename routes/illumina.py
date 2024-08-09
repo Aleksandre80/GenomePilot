@@ -81,17 +81,27 @@ for fastq_file in {input_dir}/*_R1_001.fastq; do
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
         samtools sort "${{output_bam}}.bam" -o "${{output_sorted_bam}}" 2>> "{log_file}"
         
-        # Index BAM
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing BAM file..." >> "{log_file}"
-        samtools index "${{output_sorted_bam}}" 2>> "{log_file}"
-        
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
     else
         echo "Error: Could not find corresponding R2 file for $fastq_r1" >> "{log_file}"
     fi
 done
-"""
+
+# Merging BAM files for each patient
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
+for patient_id in $(ls {output_dir}/*_sorted.bam | cut -d'_' -f1-2 | sort | uniq); do
+    bam_files=$(ls {output_dir}/"${{patient_id}}_"*_sorted.bam)
+    merged_bam="{output_dir}/${{patient_id}}_merged.bam"
+    samtools merge "$merged_bam" $bam_files 2>> "{log_file}"
     
+    # Index merged BAM
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing merged BAM file..." >> "{log_file}"
+    samtools index "$merged_bam" 2>> "{log_file}"
+    
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging and indexing completed for patient $patient_id" >> "{log_file}"
+done
+"""
+
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
@@ -111,6 +121,7 @@ done
     escaped_script_content = json.dumps(script_content)
     
     return jsonify(script=escaped_script_content)
+
 
 
 
@@ -154,17 +165,27 @@ for fastq_file in {input_dir}/*_R1_001.fastq; do
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
         samtools sort "${{output_bam}}.bam" -o "${{output_sorted_bam}}" 2>> "{log_file}"
         
-        # Index BAM
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing BAM file..." >> "{log_file}"
-        samtools index "${{output_sorted_bam}}" 2>> "{log_file}"
-        
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
     else
         echo "Error: Could not find corresponding R2 file for $fastq_r1" >> "{log_file}"
     fi
 done
-"""
+
+# Merging BAM files for each patient
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
+for patient_id in $(ls {output_dir}/*_sorted.bam | cut -d'_' -f1-2 | sort | uniq); do
+    bam_files=$(ls {output_dir}/"${{patient_id}}_"*_sorted.bam)
+    merged_bam="{output_dir}/${{patient_id}}_merged.bam"
+    samtools merge "$merged_bam" $bam_files 2>> "{log_file}"
     
+    # Index merged BAM
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing merged BAM file..." >> "{log_file}"
+    samtools index "$merged_bam" 2>> "{log_file}"
+    
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging and indexing completed for patient $patient_id" >> "{log_file}"
+done
+"""
+
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
