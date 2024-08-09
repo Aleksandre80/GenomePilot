@@ -51,38 +51,39 @@ def generate_illumina_script():
         report_file = f"{output_dir}/fastq_to_bam_report.html"
         status_file = f"{output_dir}/fastq_to_bam_status.txt"
         reference_genome = config['ref_genome']
+        input_dir = config['input_dir']
 
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting FASTQ to BAM conversion for directory {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting FASTQ to BAM conversion for directory {input_dir}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Scan for FASTQ pairs
-        script_content += """
-for fastq_file in $(ls {config['input_dir']}/*_R1_001.fastq); do
+        script_content += f"""
+for fastq_file in {input_dir}/*_R1_001.fastq; do
     base_name=$(basename "$fastq_file" "_R1_001.fastq")
-    fastq_r1="${base_name}_R1_001.fastq"
-    fastq_r2="${base_name}_R2_001.fastq"
+    fastq_r1="{input_dir}/${{base_name}}_R1_001.fastq"
+    fastq_r2="{input_dir}/${{base_name}}_R2_001.fastq"
     if [[ -f "$fastq_r2" ]]; then
         echo "Found pair: $fastq_r1 and $fastq_r2" >> "{log_file}"
         
-        output_bam="${output_dir}/${base_name}_aligned.bam"
-        output_sorted_bam="${output_dir}/${base_name}_sorted.bam"
+        output_bam="{output_dir}/${{base_name}}_aligned.bam"
+        output_sorted_bam="{output_dir}/${{base_name}}_sorted.bam"
         
         # Minimap2 alignment
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_r1 and $fastq_r2 to reference genome..." >> "{log_file}"
-        minimap2 -ax sr "{reference_genome}" "{fastq_r1}" "{fastq_r2}" > "${output_bam}" 2>> "{log_file}"
+        minimap2 -ax sr "{reference_genome}" "$fastq_r1" "$fastq_r2" > "${{output_bam}}" 2>> "{log_file}"
         
         # Convert SAM to BAM
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting SAM to BAM..." >> "{log_file}"
-        samtools view -S -b "${output_bam}" > "${output_bam}.bam" 2>> "{log_file}"
+        samtools view -S -b "${{output_bam}}" > "${{output_bam}}.bam" 2>> "{log_file}"
         
         # Sort BAM
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
-        samtools sort "${output_bam}.bam" -o "${output_sorted_bam}" 2>> "{log_file}"
+        samtools sort "${{output_bam}}.bam" -o "${{output_sorted_bam}}" 2>> "{log_file}"
         
         # Index BAM
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing BAM file..." >> "{log_file}"
-        samtools index "${output_sorted_bam}" 2>> "{log_file}"
+        samtools index "${{output_sorted_bam}}" 2>> "{log_file}"
         
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
     else
@@ -112,6 +113,7 @@ done
     return jsonify(script=escaped_script_content)
 
 
+
 @illumina_bp.route('/download_illumina_script', methods=['GET'])
 @role_requis('superadmin')
 def download_coberage_script():
@@ -122,38 +124,39 @@ def download_coberage_script():
         report_file = f"{output_dir}/fastq_to_bam_report.html"
         status_file = f"{output_dir}/fastq_to_bam_status.txt"
         reference_genome = config['ref_genome']
+        input_dir = config['input_dir']
 
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting FASTQ to BAM conversion for directory {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting FASTQ to BAM conversion for directory {input_dir}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
         
         # Scan for FASTQ pairs
-        script_content += """
-for fastq_file in $(ls {config['input_dir']}/*_R1_001.fastq); do
+        script_content += f"""
+for fastq_file in {input_dir}/*_R1_001.fastq; do
     base_name=$(basename "$fastq_file" "_R1_001.fastq")
-    fastq_r1="${base_name}_R1_001.fastq"
-    fastq_r2="${base_name}_R2_001.fastq"
+    fastq_r1="{input_dir}/${{base_name}}_R1_001.fastq"
+    fastq_r2="{input_dir}/${{base_name}}_R2_001.fastq"
     if [[ -f "$fastq_r2" ]]; then
         echo "Found pair: $fastq_r1 and $fastq_r2" >> "{log_file}"
         
-        output_bam="${output_dir}/${base_name}_aligned.bam"
-        output_sorted_bam="${output_dir}/${base_name}_sorted.bam"
+        output_bam="{output_dir}/${{base_name}}_aligned.bam"
+        output_sorted_bam="{output_dir}/${{base_name}}_sorted.bam"
         
         # Minimap2 alignment
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_r1 and $fastq_r2 to reference genome..." >> "{log_file}"
-        minimap2 -ax sr "{reference_genome}" "{fastq_r1}" "{fastq_r2}" > "${output_bam}" 2>> "{log_file}"
+        minimap2 -ax sr "{reference_genome}" "$fastq_r1" "$fastq_r2" > "${{output_bam}}" 2>> "{log_file}"
         
         # Convert SAM to BAM
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting SAM to BAM..." >> "{log_file}"
-        samtools view -S -b "${output_bam}" > "${output_bam}.bam" 2>> "{log_file}"
+        samtools view -S -b "${{output_bam}}" > "${{output_bam}}.bam" 2>> "{log_file}"
         
         # Sort BAM
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
-        samtools sort "${output_bam}.bam" -o "${output_sorted_bam}" 2>> "{log_file}"
+        samtools sort "${{output_bam}}.bam" -o "${{output_sorted_bam}}" 2>> "{log_file}"
         
         # Index BAM
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing BAM file..." >> "{log_file}"
-        samtools index "${output_sorted_bam}" 2>> "{log_file}"
+        samtools index "${{output_sorted_bam}}" 2>> "{log_file}"
         
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
     else
