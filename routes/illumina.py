@@ -85,8 +85,8 @@ def generate_illumina_script():
 
         # Merging BAM files for each patient
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
-        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_L[0-9]\\+_.*/\\1/p' | sort | uniq); do
-            bam_files=$(ls {output_dir}/${{patient_id}}_*_sorted.bam)
+        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_L.*/\\1/p' | sort | uniq); do
+            bam_files=$(ls {output_dir}/*_${{patient_id}}_*_sorted.bam)
             if [[ -n "$bam_files" ]]; then
                 merged_bam="{output_dir}/${{patient_id}}_merged.bam"
                 echo "Merging BAM files for $patient_id: $bam_files" >> "{log_file}"
@@ -117,7 +117,6 @@ def generate_illumina_script():
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
-
     
     # Échapper les caractères spéciaux pour JSON
     escaped_script_content = json.dumps(script_content)
@@ -171,8 +170,8 @@ def download_coberage_script():
 
         # Merging BAM files for each patient
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
-        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_L[0-9]\\+_.*/\\1/p' | sort | uniq); do
-            bam_files=$(ls {output_dir}/${{patient_id}}_*_sorted.bam)
+        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_L.*/\\1/p' | sort | uniq); do
+            bam_files=$(ls {output_dir}/*_${{patient_id}}_*_sorted.bam)
             if [[ -n "$bam_files" ]]; then
                 merged_bam="{output_dir}/${{patient_id}}_merged.bam"
                 echo "Merging BAM files for $patient_id: $bam_files" >> "{log_file}"
