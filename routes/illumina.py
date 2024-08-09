@@ -73,13 +73,9 @@ def generate_illumina_script():
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_r1 and $fastq_r2 to reference genome..." >> "{log_file}"
                 minimap2 -ax sr "{reference_genome}" "$fastq_r1" "$fastq_r2" > "${{output_bam}}" 2>> "{log_file}"
                 
-                # Convert SAM to BAM
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting SAM to BAM..." >> "{log_file}"
-                samtools view -S -b "${{output_bam}}" > "${{output_sorted_bam}}" 2>> "{log_file}"
-                
-                # Sort BAM
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
-                samtools sort "${{output_sorted_bam}}" -o "${{output_sorted_bam}}" 2>> "{log_file}"
+                # Convert SAM to BAM and sort BAM
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting and sorting BAM file..." >> "{log_file}"
+                samtools view -Sb "${{output_bam}}" | samtools sort -o "${{output_sorted_bam}}" 2>> "{log_file}"
                 
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
             else
@@ -89,7 +85,7 @@ def generate_illumina_script():
 
         # Merging BAM files for each patient
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
-        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_.*/\\1/p' | sort | uniq); do
+        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_L[0-9]\\+_.*/\\1/p' | sort | uniq); do
             bam_files=$(ls {output_dir}/${{patient_id}}_*_sorted.bam)
             if [[ -n "$bam_files" ]]; then
                 merged_bam="{output_dir}/${{patient_id}}_merged.bam"
@@ -121,6 +117,7 @@ def generate_illumina_script():
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
+
     
     # Échapper les caractères spéciaux pour JSON
     escaped_script_content = json.dumps(script_content)
@@ -162,13 +159,9 @@ def download_coberage_script():
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_r1 and $fastq_r2 to reference genome..." >> "{log_file}"
                 minimap2 -ax sr "{reference_genome}" "$fastq_r1" "$fastq_r2" > "${{output_bam}}" 2>> "{log_file}"
                 
-                # Convert SAM to BAM
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting SAM to BAM..." >> "{log_file}"
-                samtools view -S -b "${{output_bam}}" > "${{output_sorted_bam}}" 2>> "{log_file}"
-                
-                # Sort BAM
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
-                samtools sort "${{output_sorted_bam}}" -o "${{output_sorted_bam}}" 2>> "{log_file}"
+                # Convert SAM to BAM and sort BAM
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting and sorting BAM file..." >> "{log_file}"
+                samtools view -Sb "${{output_bam}}" | samtools sort -o "${{output_sorted_bam}}" 2>> "{log_file}"
                 
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
             else
@@ -178,7 +171,7 @@ def download_coberage_script():
 
         # Merging BAM files for each patient
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
-        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_.*/\\1/p' | sort | uniq); do
+        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_L[0-9]\\+_.*/\\1/p' | sort | uniq); do
             bam_files=$(ls {output_dir}/${{patient_id}}_*_sorted.bam)
             if [[ -n "$bam_files" ]]; then
                 merged_bam="{output_dir}/${{patient_id}}_merged.bam"
@@ -210,6 +203,7 @@ def download_coberage_script():
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
+
 
     
     script_path = '/data/Script_Site/tmp/illumina_script.sh'
