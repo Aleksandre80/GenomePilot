@@ -116,6 +116,13 @@ class ConfigurationSplit(db.Model):
     split_size = db.Column(db.String(120), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
+class ConfigurationIllumina(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    input_dir = db.Column(db.String(120), nullable=False)
+    output_dir = db.Column(db.String(120), nullable=False)
+    ref_genome = db.Column(db.String(120), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    
 class Workflow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)

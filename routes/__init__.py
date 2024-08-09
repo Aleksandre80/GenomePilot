@@ -15,6 +15,7 @@ from .methylartist import methylartist_bp
 from .methylartist_violon import methylartist_violon_bp
 from.coverage import coverage_bp
 from .split_bed import split_bed_bp
+from .illumina import illumina_bp
 from .common import common_bp
 
 # Fonction pour enregistrer les Blueprints dans l'application Flask
@@ -34,4 +35,5 @@ def register_blueprints(app):
     app.register_blueprint(methylartist_violon_bp)
     app.register_blueprint(coverage_bp)
     app.register_blueprint(split_bed_bp)
+    app.register_blueprint(illumina_bp)
     
