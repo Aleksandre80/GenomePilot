@@ -56,60 +56,65 @@ def generate_illumina_script():
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting FASTQ to BAM conversion for directory {input_dir}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
-        
+
         # Scan for FASTQ pairs
         script_content += f"""
-for fastq_file in {input_dir}/*_R1_001.fastq; do
-    base_name=$(basename "$fastq_file" "_R1_001.fastq")
-    fastq_r1="{input_dir}/${{base_name}}_R1_001.fastq"
-    fastq_r2="{input_dir}/${{base_name}}_R2_001.fastq"
-    if [[ -f "$fastq_r2" ]]; then
-        echo "Found pair: $fastq_r1 and $fastq_r2" >> "{log_file}"
-        
-        output_bam="{output_dir}/${{base_name}}_aligned.bam"
-        output_sorted_bam="{output_dir}/${{base_name}}_sorted.bam"
-        
-        # Minimap2 alignment
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_r1 and $fastq_r2 to reference genome..." >> "{log_file}"
-        minimap2 -ax sr "{reference_genome}" "$fastq_r1" "$fastq_r2" > "${{output_bam}}" 2>> "{log_file}"
-        
-        # Convert SAM to BAM
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting SAM to BAM..." >> "{log_file}"
-        samtools view -S -b "${{output_bam}}" > "${{output_bam}}.bam" 2>> "{log_file}"
-        
-        # Sort BAM
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
-        samtools sort "${{output_bam}}.bam" -o "${{output_sorted_bam}}" 2>> "{log_file}"
-        
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
-    else
-        echo "Error: Could not find corresponding R2 file for $fastq_r1" >> "{log_file}"
-    fi
-done
+        for fastq_file in {input_dir}/*_R1_001.fastq; do
+            base_name=$(basename "$fastq_file" "_R1_001.fastq")
+            fastq_r1="{input_dir}/${{base_name}}_R1_001.fastq"
+            fastq_r2="{input_dir}/${{base_name}}_R2_001.fastq"
+            if [[ -f "$fastq_r2" ]]; then
+                echo "Found pair: $fastq_r1 and $fastq_r2" >> "{log_file}"
+                
+                output_bam="{output_dir}/${{base_name}}_aligned.bam"
+                output_sorted_bam="{output_dir}/${{base_name}}_sorted.bam"
+                
+                # Minimap2 alignment
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_r1 and $fastq_r2 to reference genome..." >> "{log_file}"
+                minimap2 -ax sr "{reference_genome}" "$fastq_r1" "$fastq_r2" > "${{output_bam}}" 2>> "{log_file}"
+                
+                # Convert SAM to BAM
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting SAM to BAM..." >> "{log_file}"
+                samtools view -S -b "${{output_bam}}" > "${{output_sorted_bam}}" 2>> "{log_file}"
+                
+                # Sort BAM
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
+                samtools sort "${{output_sorted_bam}}" -o "${{output_sorted_bam}}" 2>> "{log_file}"
+                
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
+            else
+                echo "Error: Could not find corresponding R2 file for $fastq_r1" >> "{log_file}"
+            fi
+        done
 
-# Merging BAM files for each patient
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
-for patient_id in $(ls {output_dir}/*_sorted.bam | cut -d'_' -f1-2 | sort | uniq); do
-    bam_files=$(ls {output_dir}/"${{patient_id}}_"*_sorted.bam)
-    merged_bam="{output_dir}/${{patient_id}}_merged.bam"
-    samtools merge "$merged_bam" $bam_files 2>> "{log_file}"
-    
-    # Index merged BAM
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing merged BAM file..." >> "{log_file}"
-    samtools index "$merged_bam" 2>> "{log_file}"
-    
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging and indexing completed for patient $patient_id" >> "{log_file}"
-done
-"""
+        # Merging BAM files for each patient
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
+        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_.*/\\1/p' | sort | uniq); do
+            bam_files=$(ls {output_dir}/${{patient_id}}_*_sorted.bam)
+            if [[ -n "$bam_files" ]]; then
+                merged_bam="{output_dir}/${{patient_id}}_merged.bam"
+                echo "Merging BAM files for $patient_id: $bam_files" >> "{log_file}"
+                samtools merge "$merged_bam" $bam_files 2>> "{log_file}"
+                
+                # Index merged BAM
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing merged BAM file..." >> "{log_file}"
+                samtools index "$merged_bam" 2>> "{log_file}"
+                
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging and indexing completed for patient $patient_id" >> "{log_file}"
+            else
+                echo "No BAM files found for $patient_id" >> "{log_file}"
+            fi
+        done
+        """
 
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
-        
+
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - All processes are complete.\" >> \"{log_file}\"\n"
-        
+
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>FASTQ to BAM Log Report</title></head><body><div class=\"log-container\"><h1>FASTQ to BAM Log Report</h1>' > \"{report_file}\"\n"
         script_content += f"while IFS= read -r line; do\n"
@@ -140,66 +145,72 @@ def download_coberage_script():
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting FASTQ to BAM conversion for directory {input_dir}\" >> \"{log_file}\"\n"
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Output directory created.\" >> \"{log_file}\"\n"
-        
+
         # Scan for FASTQ pairs
         script_content += f"""
-for fastq_file in {input_dir}/*_R1_001.fastq; do
-    base_name=$(basename "$fastq_file" "_R1_001.fastq")
-    fastq_r1="{input_dir}/${{base_name}}_R1_001.fastq"
-    fastq_r2="{input_dir}/${{base_name}}_R2_001.fastq"
-    if [[ -f "$fastq_r2" ]]; then
-        echo "Found pair: $fastq_r1 and $fastq_r2" >> "{log_file}"
-        
-        output_bam="{output_dir}/${{base_name}}_aligned.bam"
-        output_sorted_bam="{output_dir}/${{base_name}}_sorted.bam"
-        
-        # Minimap2 alignment
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_r1 and $fastq_r2 to reference genome..." >> "{log_file}"
-        minimap2 -ax sr "{reference_genome}" "$fastq_r1" "$fastq_r2" > "${{output_bam}}" 2>> "{log_file}"
-        
-        # Convert SAM to BAM
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting SAM to BAM..." >> "{log_file}"
-        samtools view -S -b "${{output_bam}}" > "${{output_bam}}.bam" 2>> "{log_file}"
-        
-        # Sort BAM
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
-        samtools sort "${{output_bam}}.bam" -o "${{output_sorted_bam}}" 2>> "{log_file}"
-        
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
-    else
-        echo "Error: Could not find corresponding R2 file for $fastq_r1" >> "{log_file}"
-    fi
-done
+        for fastq_file in {input_dir}/*_R1_001.fastq; do
+            base_name=$(basename "$fastq_file" "_R1_001.fastq")
+            fastq_r1="{input_dir}/${{base_name}}_R1_001.fastq"
+            fastq_r2="{input_dir}/${{base_name}}_R2_001.fastq"
+            if [[ -f "$fastq_r2" ]]; then
+                echo "Found pair: $fastq_r1 and $fastq_r2" >> "{log_file}"
+                
+                output_bam="{output_dir}/${{base_name}}_aligned.bam"
+                output_sorted_bam="{output_dir}/${{base_name}}_sorted.bam"
+                
+                # Minimap2 alignment
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Aligning $fastq_r1 and $fastq_r2 to reference genome..." >> "{log_file}"
+                minimap2 -ax sr "{reference_genome}" "$fastq_r1" "$fastq_r2" > "${{output_bam}}" 2>> "{log_file}"
+                
+                # Convert SAM to BAM
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Converting SAM to BAM..." >> "{log_file}"
+                samtools view -S -b "${{output_bam}}" > "${{output_sorted_bam}}" 2>> "{log_file}"
+                
+                # Sort BAM
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sorting BAM file..." >> "{log_file}"
+                samtools sort "${{output_sorted_bam}}" -o "${{output_sorted_bam}}" 2>> "{log_file}"
+                
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Processed $base_name" >> "{log_file}"
+            else
+                echo "Error: Could not find corresponding R2 file for $fastq_r1" >> "{log_file}"
+            fi
+        done
 
-# Merging BAM files for each patient
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
-for patient_id in $(ls {output_dir}/*_sorted.bam | cut -d'_' -f1-2 | sort | uniq); do
-    bam_files=$(ls {output_dir}/"${{patient_id}}_"*_sorted.bam)
-    merged_bam="{output_dir}/${{patient_id}}_merged.bam"
-    samtools merge "$merged_bam" $bam_files 2>> "{log_file}"
-    
-    # Index merged BAM
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing merged BAM file..." >> "{log_file}"
-    samtools index "$merged_bam" 2>> "{log_file}"
-    
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging and indexing completed for patient $patient_id" >> "{log_file}"
-done
-"""
+        # Merging BAM files for each patient
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging sorted BAM files..." >> "{log_file}"
+        for patient_id in $(ls {output_dir}/*_sorted.bam | sed -n 's/.*_\\(S[0-9]\\+\\)_.*/\\1/p' | sort | uniq); do
+            bam_files=$(ls {output_dir}/${{patient_id}}_*_sorted.bam)
+            if [[ -n "$bam_files" ]]; then
+                merged_bam="{output_dir}/${{patient_id}}_merged.bam"
+                echo "Merging BAM files for $patient_id: $bam_files" >> "{log_file}"
+                samtools merge "$merged_bam" $bam_files 2>> "{log_file}"
+                
+                # Index merged BAM
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Indexing merged BAM file..." >> "{log_file}"
+                samtools index "$merged_bam" 2>> "{log_file}"
+                
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Merging and indexing completed for patient $patient_id" >> "{log_file}"
+            else
+                echo "No BAM files found for $patient_id" >> "{log_file}"
+            fi
+        done
+        """
 
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"fi\n"
-        
+
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - All processes are complete.\" >> \"{log_file}\"\n"
-        
+
         # Generate HTML report
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>FASTQ to BAM Log Report</title></head><body><div class=\"log-container\"><h1>FASTQ to BAM Log Report</h1>' > \"{report_file}\"\n"
         script_content += f"while IFS= read -r line; do\n"
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> \"{report_file}\"\n"
         script_content += f"done < \"{log_file}\"\n"
         script_content += f"echo '</div></body></html>' >> \"{report_file}\"\n"
+
     
     script_path = '/data/Script_Site/tmp/illumina_script.sh'
     with open(script_path, 'w') as file:
