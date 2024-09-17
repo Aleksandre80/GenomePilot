@@ -41,25 +41,59 @@ def bam_merger():
 @role_requis('superadmin')
 def generate_bam_script():
     script_content = "#!/bin/bash\n\n"
+    
     for config in configurations_merge:
         merge_dir = f"{config['output_dir']}/Merge_BAM"
+        temp_dir = f"{merge_dir}/temp"
         log_file = f"{merge_dir}/merge_log.txt"
         report_file = f"{merge_dir}/merge_report.html"
         status_file = f"{merge_dir}/merge_status.txt"
         merged_bam = f"{merge_dir}/merge.bam"
-
+        
+        # Création des répertoires et initialisation des logs
         script_content += f"mkdir -p \"{merge_dir}\"\n"
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"samtools merge \"{merged_bam}\" \"{config['input_dir']}\"/*.bam\n"
+        script_content += f"mkdir -p \"{temp_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting batch merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        
+        # Commande pour copier les fichiers BAM dans le répertoire temporaire
+        script_content += f"cp \"{config['input_dir']}\"/*.bam \"{temp_dir}\"\n"
+        
+        # Initialisation des variables pour la gestion par lots
+        script_content += "counter=0\n"
+        script_content += "batch_files=()\n"
+        
+        # Commande pour parcourir les fichiers BAM et les fusionner par lots de 100
+        script_content += f"for file in \"{temp_dir}\"/*.bam; do\n"
+        script_content += f"    batch_files+=(\"$file\")\n"
+        script_content += f"    counter=$((counter + 1))\n"
+        script_content += f"    if [ \"$counter\" -eq 100 ]; then\n"
+        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$counter.bam\" \"${{batch_files[@]}}\"\n"
+        script_content += f"        batch_files=()\n"
+        script_content += f"        counter=0\n"
+        script_content += f"    fi\n"
+        script_content += f"done\n"
+        
+        # Commande pour fusionner les fichiers restants si moins de 100
+        script_content += f"if [ \"${{#batch_files[@]}}\" -gt 0 ]; then\n"
+        script_content += f"    samtools merge \"{temp_dir}/temp_merged_last.bam\" \"${{batch_files[@]}}\"\n"
+        script_content += f"fi\n"
+        
+        # Fusionner tous les fichiers temporaires en un seul fichier BAM final
+        script_content += f"samtools merge \"{merged_bam}\" \"{temp_dir}/temp_merged_*.bam\"\n"
+        
+        # Vérification du statut et écriture des logs
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-        script_content += f"fi\n\n"
+        script_content += f"fi\n"
         
-        # Generate HTML report
+        # Nettoyage des fichiers temporaires
+        script_content += f"rm -r \"{temp_dir}\"\n\n"
+        
+        # Génération du rapport HTML
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Log Report</title></head><body><div class=\"log-container\"><h1>Log Report</h1>' > {report_file}\n"
         script_content += f"while IFS= read -r line; do\n"
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
@@ -73,29 +107,63 @@ def generate_bam_script():
 
 
 
+
 @merge_bp.route('/download_bam_script', methods=['GET'])
 @role_requis('superadmin')
 def download_bam_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_merge:
         merge_dir = f"{config['output_dir']}/Merge_BAM"
+        temp_dir = f"{merge_dir}/temp"
         log_file = f"{merge_dir}/merge_log.txt"
         report_file = f"{merge_dir}/merge_report.html"
         status_file = f"{merge_dir}/merge_status.txt"
         merged_bam = f"{merge_dir}/merge.bam"
-
+        
+        # Création des répertoires et initialisation des logs
         script_content += f"mkdir -p \"{merge_dir}\"\n"
-        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        script_content += f"samtools merge \"{merged_bam}\" \"{config['input_dir']}\"/*.bam\n"
+        script_content += f"mkdir -p \"{temp_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting batch merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        
+        # Commande pour copier les fichiers BAM dans le répertoire temporaire
+        script_content += f"cp \"{config['input_dir']}\"/*.bam \"{temp_dir}\"\n"
+        
+        # Initialisation des variables pour la gestion par lots
+        script_content += "counter=0\n"
+        script_content += "batch_files=()\n"
+        
+        # Commande pour parcourir les fichiers BAM et les fusionner par lots de 100
+        script_content += f"for file in \"{temp_dir}\"/*.bam; do\n"
+        script_content += f"    batch_files+=(\"$file\")\n"
+        script_content += f"    counter=$((counter + 1))\n"
+        script_content += f"    if [ \"$counter\" -eq 100 ]; then\n"
+        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$counter.bam\" \"${{batch_files[@]}}\"\n"
+        script_content += f"        batch_files=()\n"
+        script_content += f"        counter=0\n"
+        script_content += f"    fi\n"
+        script_content += f"done\n"
+        
+        # Commande pour fusionner les fichiers restants si moins de 100
+        script_content += f"if [ \"${{#batch_files[@]}}\" -gt 0 ]; then\n"
+        script_content += f"    samtools merge \"{temp_dir}/temp_merged_last.bam\" \"${{batch_files[@]}}\"\n"
+        script_content += f"fi\n"
+        
+        # Fusionner tous les fichiers temporaires en un seul fichier BAM final
+        script_content += f"samtools merge \"{merged_bam}\" \"{temp_dir}/temp_merged_*.bam\"\n"
+        
+        # Vérification du statut et écriture des logs
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
-        script_content += f"fi\n\n"
+        script_content += f"fi\n"
         
-        # Generate HTML report
+        # Nettoyage des fichiers temporaires
+        script_content += f"rm -r \"{temp_dir}\"\n\n"
+        
+        # Génération du rapport HTML
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Log Report</title></head><body><div class=\"log-container\"><h1>Log Report</h1>' > {report_file}\n"
         script_content += f"while IFS= read -r line; do\n"
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
@@ -142,7 +210,7 @@ def handle_script():
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             stdout, stderr = process.communicate()
             
-            status_file = configurations_merge[-1]['output_dir'] + "/merge_status.txt"
+            status_file = configurations_merge[-1]['output_dir'] + "/Merge_BAM/merge_status.txt"
             if os.path.exists(status_file):
                 with open(status_file, 'r') as file:
                     status_info = file.read().strip()
