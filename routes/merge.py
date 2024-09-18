@@ -53,57 +53,86 @@ def generate_bam_script():
         # Création des répertoires et initialisation des logs
         script_content += f"mkdir -p \"{merge_dir}\"\n"
         script_content += f"mkdir -p \"{temp_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Created directories: {merge_dir} and {temp_dir}\" >> \"{log_file}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting batch merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        
+        script_content += "\n"
+
+        # Comptage du nombre de fichiers BAM dans le répertoire source
+        script_content += f"bam_count=$(ls \"{config['input_dir']}\"/*.bam | wc -l)\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Found $bam_count BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"if [ \"$bam_count\" -eq 0 ]; then\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - No BAM files found, aborting.\" >> \"{log_file}\"\n"
+        script_content += f"    exit 1\n"
+        script_content += f"fi\n"
+        script_content += "\n"
+
         # Commande pour copier les fichiers BAM dans le répertoire temporaire
         script_content += f"cp \"{config['input_dir']}\"/*.bam \"{temp_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Copied BAM files to {temp_dir}\" >> \"{log_file}\"\n"
+        script_content += "\n"
         
         # Initialisation des variables pour la gestion par lots
         script_content += "counter=0\n"
         script_content += "batch_files=()\n"
-        
+        script_content += "\n"
+
         # Commande pour parcourir les fichiers BAM et les fusionner par lots de 100
         script_content += f"for file in \"{temp_dir}\"/*.bam; do\n"
         script_content += f"    batch_files+=(\"$file\")\n"
         script_content += f"    counter=$((counter + 1))\n"
         script_content += f"    if [ \"$counter\" -eq 100 ]; then\n"
-        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$counter.bam\" \"${{batch_files[@]}}\"\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging batch of 100 BAM files.\" >> \"{log_file}\"\n"
+        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$counter.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
+        script_content += f"        if [ $? -ne 0 ]; then\n"
+        script_content += f"            echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging batch.\" >> \"{log_file}\"\n"
+        script_content += f"            exit 1\n"
+        script_content += f"        fi\n"
         script_content += f"        batch_files=()\n"
         script_content += f"        counter=0\n"
         script_content += f"    fi\n"
         script_content += f"done\n"
-        
+        script_content += "\n"
+
         # Commande pour fusionner les fichiers restants si moins de 100
         script_content += f"if [ \"${{#batch_files[@]}}\" -gt 0 ]; then\n"
-        script_content += f"    samtools merge \"{temp_dir}/temp_merged_last.bam\" \"${{batch_files[@]}}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging remaining BAM files.\" >> \"{log_file}\"\n"
+        script_content += f"    samtools merge \"{temp_dir}/temp_merged_last.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
+        script_content += f"    if [ $? -ne 0 ]; then\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging remaining files.\" >> \"{log_file}\"\n"
+        script_content += f"        exit 1\n"
+        script_content += f"    fi\n"
         script_content += f"fi\n"
-        
+        script_content += "\n"
+
         # Fusionner tous les fichiers temporaires en un seul fichier BAM final
-        script_content += f"samtools merge \"{merged_bam}\" \"{temp_dir}/temp_merged_*.bam\"\n"
-        
-        # Vérification du statut et écriture des logs
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging all temporary merged BAM files.\" >> \"{log_file}\"\n"
+        script_content += f"samtools merge \"{merged_bam}\" \"{temp_dir}/temp_merged_*.bam\" 2>> \"{log_file}\"\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Final merge completed successfully.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Final merge failed.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"    exit 1\n"
         script_content += f"fi\n"
-        
+        script_content += "\n"
+
         # Nettoyage des fichiers temporaires
-        script_content += f"rm -r \"{temp_dir}\"\n\n"
-        
+        script_content += f"rm -r \"{temp_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Cleaned up temporary directory.\" >> \"{log_file}\"\n"
+        script_content += "\n"
+
         # Génération du rapport HTML
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Log Report</title></head><body><div class=\"log-container\"><h1>Log Report</h1>' > {report_file}\n"
         script_content += f"while IFS= read -r line; do\n"
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
         script_content += f"done < {log_file}\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
+        script_content += "\n"
     
-    # Échapper les caractères spéciaux pour JSON
-    escaped_script_content = json.dumps(script_content)
+    return jsonify(script=script_content)
 
-    return jsonify(script=escaped_script_content)
+
 
 
 
@@ -123,52 +152,82 @@ def download_bam_script():
         # Création des répertoires et initialisation des logs
         script_content += f"mkdir -p \"{merge_dir}\"\n"
         script_content += f"mkdir -p \"{temp_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Created directories: {merge_dir} and {temp_dir}\" >> \"{log_file}\"\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Starting batch merge for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
-        
+        script_content += "\n"
+
+        # Comptage du nombre de fichiers BAM dans le répertoire source
+        script_content += f"bam_count=$(ls \"{config['input_dir']}\"/*.bam | wc -l)\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Found $bam_count BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"if [ \"$bam_count\" -eq 0 ]; then\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - No BAM files found, aborting.\" >> \"{log_file}\"\n"
+        script_content += f"    exit 1\n"
+        script_content += f"fi\n"
+        script_content += "\n"
+
         # Commande pour copier les fichiers BAM dans le répertoire temporaire
         script_content += f"cp \"{config['input_dir']}\"/*.bam \"{temp_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Copied BAM files to {temp_dir}\" >> \"{log_file}\"\n"
+        script_content += "\n"
         
         # Initialisation des variables pour la gestion par lots
         script_content += "counter=0\n"
         script_content += "batch_files=()\n"
-        
+        script_content += "\n"
+
         # Commande pour parcourir les fichiers BAM et les fusionner par lots de 100
         script_content += f"for file in \"{temp_dir}\"/*.bam; do\n"
         script_content += f"    batch_files+=(\"$file\")\n"
         script_content += f"    counter=$((counter + 1))\n"
         script_content += f"    if [ \"$counter\" -eq 100 ]; then\n"
-        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$counter.bam\" \"${{batch_files[@]}}\"\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging batch of 100 BAM files.\" >> \"{log_file}\"\n"
+        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$counter.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
+        script_content += f"        if [ $? -ne 0 ]; then\n"
+        script_content += f"            echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging batch.\" >> \"{log_file}\"\n"
+        script_content += f"            exit 1\n"
+        script_content += f"        fi\n"
         script_content += f"        batch_files=()\n"
         script_content += f"        counter=0\n"
         script_content += f"    fi\n"
         script_content += f"done\n"
-        
+        script_content += "\n"
+
         # Commande pour fusionner les fichiers restants si moins de 100
         script_content += f"if [ \"${{#batch_files[@]}}\" -gt 0 ]; then\n"
-        script_content += f"    samtools merge \"{temp_dir}/temp_merged_last.bam\" \"${{batch_files[@]}}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging remaining BAM files.\" >> \"{log_file}\"\n"
+        script_content += f"    samtools merge \"{temp_dir}/temp_merged_last.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
+        script_content += f"    if [ $? -ne 0 ]; then\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging remaining files.\" >> \"{log_file}\"\n"
+        script_content += f"        exit 1\n"
+        script_content += f"    fi\n"
         script_content += f"fi\n"
-        
+        script_content += "\n"
+
         # Fusionner tous les fichiers temporaires en un seul fichier BAM final
-        script_content += f"samtools merge \"{merged_bam}\" \"{temp_dir}/temp_merged_*.bam\"\n"
-        
-        # Vérification du statut et écriture des logs
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging all temporary merged BAM files.\" >> \"{log_file}\"\n"
+        script_content += f"samtools merge \"{merged_bam}\" \"{temp_dir}/temp_merged_*.bam\" 2>> \"{log_file}\"\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging complete for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Final merge completed successfully.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
-        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging failed for BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Final merge failed.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"failed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
+        script_content += f"    exit 1\n"
         script_content += f"fi\n"
-        
+        script_content += "\n"
+
         # Nettoyage des fichiers temporaires
-        script_content += f"rm -r \"{temp_dir}\"\n\n"
-        
+        script_content += f"rm -r \"{temp_dir}\"\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Cleaned up temporary directory.\" >> \"{log_file}\"\n"
+        script_content += "\n"
+
         # Génération du rapport HTML
         script_content += f"echo '<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><title>Log Report</title></head><body><div class=\"log-container\"><h1>Log Report</h1>' > {report_file}\n"
         script_content += f"while IFS= read -r line; do\n"
         script_content += f"    echo \"<div class='log-entry'>\"$line\"</div>\" >> {report_file}\n"
         script_content += f"done < {log_file}\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
+        script_content += "\n"
     
     script_path = '/data/Script_Site/tmp/bam_merge_script.sh'
     with open(script_path, 'w') as file:
