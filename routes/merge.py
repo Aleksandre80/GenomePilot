@@ -37,6 +37,7 @@ def bam_merger():
         return jsonify(success=True, message="Configuration added successfully.")
     return render_template('bam_merger.html')
 
+
 @merge_bp.route('/generate_bam_script', methods=['GET'])
 @role_requis('superadmin')
 def generate_bam_script():
@@ -109,9 +110,13 @@ def generate_bam_script():
         script_content += f"fi\n"
         script_content += "\n"
 
+        # Récupération de la liste des fichiers temporaires fusionnés
+        script_content += f"temp_files=$(ls {temp_dir}/temp_merged_*.bam)\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Temporary merged files: $temp_files\" >> \"{log_file}\"\n"
+
         # Fusionner tous les fichiers temporaires en un seul fichier BAM final
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging all temporary merged BAM files.\" >> \"{log_file}\"\n"
-        script_content += f"samtools merge \"{merged_bam}\" \"{temp_dir}/temp_merged_*.bam\" 2>> \"{log_file}\"\n"
+        script_content += f"samtools merge \"{merged_bam}\" $temp_files 2>> \"{log_file}\"\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Final merge completed successfully.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
@@ -136,6 +141,7 @@ def generate_bam_script():
         script_content += "\n"
 
     return jsonify(script=script_content)
+
 
 
 
@@ -214,9 +220,13 @@ def download_bam_script():
         script_content += f"fi\n"
         script_content += "\n"
 
+        # Récupération de la liste des fichiers temporaires fusionnés
+        script_content += f"temp_files=$(ls {temp_dir}/temp_merged_*.bam)\n"
+        script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Temporary merged files: $temp_files\" >> \"{log_file}\"\n"
+
         # Fusionner tous les fichiers temporaires en un seul fichier BAM final
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging all temporary merged BAM files.\" >> \"{log_file}\"\n"
-        script_content += f"samtools merge \"{merged_bam}\" \"{temp_dir}/temp_merged_*.bam\" 2>> \"{log_file}\"\n"
+        script_content += f"samtools merge \"{merged_bam}\" $temp_files 2>> \"{log_file}\"\n"
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Final merge completed successfully.\" >> \"{log_file}\"\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
