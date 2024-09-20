@@ -102,7 +102,7 @@ def download_phred_quality_script():
         script_content += f"echo \"Starting Phred quality filtering for {config['input_file']}...\" >> \"{log_file}\"\n"
         
         # Commande pour lancer le script Python avec les paramètres
-        script_content += f"python /home/grid/GenomePilot-main/bam_filter2.py \"{config['input_file']}\" \"{output_bam}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{log_file}\" >> \"{log_file}\" 2>&1\n"
+        script_content += f"python /home/grid/GenomePilot-main/bam_filter1.py \"{config['input_file']}\" \"{output_bam}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{log_file}\" >> \"{log_file}\" 2>&1\n"
         
         # Vérification du statut de l'exécution et mise à jour du fichier de statut
         script_content += f"if [ $? -eq 0 ]; then\n"

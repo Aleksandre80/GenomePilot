@@ -190,7 +190,20 @@
                 })
                 .catch(error => console.error('Error loading configurations:', error));
         }
+
+        function startScript() {
+            fetch('/start_phred_quality_script', {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Script started:', data);
+                    alert('Script started');
+                })
+                .catch(error => console.error('Error starting script:', error));
+        }
     </script>
+    
     <script>
         function generateAndShowScript() {
             fetch('/generate_phred_quality_script')
