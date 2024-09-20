@@ -128,7 +128,7 @@ def start_phred_quality_script():
         db.session.commit()
 
         try:
-            script_path = '/data/Script_Site/tmp/phred_quality_filter.sh'
+            script_path = '/data/Script_Site/tmp/bam_quality_filter.sh'
             script_command = f"bash {script_path}"
             
             process = subprocess.Popen(shlex.split(script_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
