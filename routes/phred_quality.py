@@ -56,15 +56,24 @@ def phred_quality():
 def generate_phred_quality_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_phred_quality:
+        # Extraire le nom du fichier BAM sans l'extension
+        bam_basename = os.path.basename(config['input_file']).replace('.bam', '')
+        
+        # Créer le chemin de sortie avec Phred_Quality et nom du BAM suivi de _filter.bam
         output_dir = os.path.join(config['output_dir'], "Phred_Quality")
+        output_bam = os.path.join(output_dir, f"{bam_basename}_filter.bam")
+        
         log_file = f"{output_dir}/logs_phred_filter.log"
         status_file = f"{output_dir}/phred_filter_status.txt"
         
+        # Création du répertoire de sortie
         script_content += f"mkdir -p \"{output_dir}\"\n"
-        script_content += f"echo \"Starting Phred quality filtering...\"\n"
-        script_content += f"python /home/grid/GenomePilot-main/bam_filter2.py \"{config['input_file']}\" \"{output_dir}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{log_file} \"> \"{log_file}\" 2>&1\n"
+        script_content += f"echo \"Starting Phred quality filtering for {config['input_file']}...\" >> \"{log_file}\"\n"
         
-        # Ajout d'un check pour voir si le script a réussi ou échoué
+        # Commande pour lancer le script Python avec les paramètres
+        script_content += f"python /home/grid/GenomePilot-main/bam_filter2.py \"{config['input_file']}\" \"{output_bam}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{log_file}\" >> \"{log_file}\" 2>&1\n"
+        
+        # Vérification du statut de l'exécution et mise à jour du fichier de statut
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
@@ -78,15 +87,24 @@ def generate_phred_quality_script():
 def download_phred_quality_script():
     script_content = "#!/bin/bash\n\n"
     for config in configurations_phred_quality:
+        # Extraire le nom du fichier BAM sans l'extension
+        bam_basename = os.path.basename(config['input_file']).replace('.bam', '')
+        
+        # Créer le chemin de sortie avec Phred_Quality et nom du BAM suivi de _filter.bam
         output_dir = os.path.join(config['output_dir'], "Phred_Quality")
+        output_bam = os.path.join(output_dir, f"{bam_basename}_filter.bam")
+        
         log_file = f"{output_dir}/logs_phred_filter.log"
         status_file = f"{output_dir}/phred_filter_status.txt"
         
+        # Création du répertoire de sortie
         script_content += f"mkdir -p \"{output_dir}\"\n"
-        script_content += f"echo \"Starting Phred quality filtering...\"\n"
-        script_content += f"python /home/grid/bam_filter2.py \"{config['input_file']}\" \"{output_dir}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" > \"{log_file}\" 2>&1\n"
+        script_content += f"echo \"Starting Phred quality filtering for {config['input_file']}...\" >> \"{log_file}\"\n"
         
-        # Ajout d'un check pour voir si le script a réussi ou échoué
+        # Commande pour lancer le script Python avec les paramètres
+        script_content += f"python /home/grid/GenomePilot-main/bam_filter2.py \"{config['input_file']}\" \"{output_bam}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{log_file}\" >> \"{log_file}\" 2>&1\n"
+        
+        # Vérification du statut de l'exécution et mise à jour du fichier de statut
         script_content += f"if [ $? -eq 0 ]; then\n"
         script_content += f"    echo \"completed - $(date '+%Y-%m-%d %H:%M:%S')\" > \"{status_file}\"\n"
         script_content += f"else\n"
