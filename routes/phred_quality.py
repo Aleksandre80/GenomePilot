@@ -62,7 +62,7 @@ def generate_phred_quality_script():
         
         script_content += f"mkdir -p \"{output_dir}\"\n"
         script_content += f"echo \"Starting Phred quality filtering...\"\n"
-        script_content += f"python /home/grid/bam_filter2.py \"{config['input_file']}\" \"{output_dir}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" > \"{log_file}\" 2>&1\n"
+        script_content += f"python /home/grid/GenomePilot-main/bam_filter2.py \"{config['input_file']}\" \"{output_dir}\" \"{config['chr']}\" \"{config['pos1']}\" \"{config['pos2']}\" \"{config['phred_min']}\" \"{log_file} \"> \"{log_file}\" 2>&1\n"
         
         # Ajout d'un check pour voir si le script a réussi ou échoué
         script_content += f"if [ $? -eq 0 ]; then\n"
