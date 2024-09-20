@@ -58,7 +58,7 @@ def generate_bam_script():
         script_content += "\n"
 
         # Comptage du nombre de fichiers BAM dans le répertoire source
-        script_content += f"bam_count=$(ls \"{config['input_dir']}\"/*.bam | wc -l)\n"
+        script_content += f"bam_count=$(ls \"{config['input_dir']}\"/*.bam 2>/dev/null | wc -l)\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Found $bam_count BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"if [ \"$bam_count\" -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - No BAM files found, aborting.\" >> \"{log_file}\"\n"
@@ -73,6 +73,7 @@ def generate_bam_script():
         
         # Initialisation des variables pour la gestion par lots
         script_content += "counter=0\n"
+        script_content += "batch_counter=1\n"
         script_content += "batch_files=()\n"
         script_content += "\n"
 
@@ -80,15 +81,17 @@ def generate_bam_script():
         script_content += f"for file in \"{temp_dir}\"/*.bam; do\n"
         script_content += f"    batch_files+=(\"$file\")\n"
         script_content += f"    counter=$((counter + 1))\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Added $file to batch. Current batch size: $counter\" >> \"{log_file}\"\n"
         script_content += f"    if [ \"$counter\" -eq 100 ]; then\n"
-        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging batch of 100 BAM files.\" >> \"{log_file}\"\n"
-        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$counter.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging batch $batch_counter of 100 BAM files.\" >> \"{log_file}\"\n"
+        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$batch_counter.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
         script_content += f"        if [ $? -ne 0 ]; then\n"
-        script_content += f"            echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging batch.\" >> \"{log_file}\"\n"
+        script_content += f"            echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging batch $batch_counter.\" >> \"{log_file}\"\n"
         script_content += f"            exit 1\n"
         script_content += f"        fi\n"
         script_content += f"        batch_files=()\n"
         script_content += f"        counter=0\n"
+        script_content += f"        batch_counter=$((batch_counter + 1))\n"
         script_content += f"    fi\n"
         script_content += f"done\n"
         script_content += "\n"
@@ -96,11 +99,13 @@ def generate_bam_script():
         # Commande pour fusionner les fichiers restants si moins de 100
         script_content += f"if [ \"${{#batch_files[@]}}\" -gt 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging remaining BAM files.\" >> \"{log_file}\"\n"
-        script_content += f"    samtools merge \"{temp_dir}/temp_merged_last.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
+        script_content += f"    samtools merge \"{temp_dir}/temp_merged_$batch_counter.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
         script_content += f"    if [ $? -ne 0 ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging remaining files.\" >> \"{log_file}\"\n"
         script_content += f"        exit 1\n"
         script_content += f"    fi\n"
+        script_content += f"else\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - No remaining files to merge.\" >> \"{log_file}\"\n"
         script_content += f"fi\n"
         script_content += "\n"
 
@@ -129,8 +134,9 @@ def generate_bam_script():
         script_content += f"done < {log_file}\n"
         script_content += f"echo '</div></body></html>' >> {report_file}\n"
         script_content += "\n"
-    
+
     return jsonify(script=script_content)
+
 
 
 
@@ -157,7 +163,7 @@ def download_bam_script():
         script_content += "\n"
 
         # Comptage du nombre de fichiers BAM dans le répertoire source
-        script_content += f"bam_count=$(ls \"{config['input_dir']}\"/*.bam | wc -l)\n"
+        script_content += f"bam_count=$(ls \"{config['input_dir']}\"/*.bam 2>/dev/null | wc -l)\n"
         script_content += f"echo \"$(date '+%Y-%m-%d %H:%M:%S') - Found $bam_count BAM files in {config['input_dir']}\" >> \"{log_file}\"\n"
         script_content += f"if [ \"$bam_count\" -eq 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - No BAM files found, aborting.\" >> \"{log_file}\"\n"
@@ -172,6 +178,7 @@ def download_bam_script():
         
         # Initialisation des variables pour la gestion par lots
         script_content += "counter=0\n"
+        script_content += "batch_counter=1\n"
         script_content += "batch_files=()\n"
         script_content += "\n"
 
@@ -179,15 +186,17 @@ def download_bam_script():
         script_content += f"for file in \"{temp_dir}\"/*.bam; do\n"
         script_content += f"    batch_files+=(\"$file\")\n"
         script_content += f"    counter=$((counter + 1))\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Added $file to batch. Current batch size: $counter\" >> \"{log_file}\"\n"
         script_content += f"    if [ \"$counter\" -eq 100 ]; then\n"
-        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging batch of 100 BAM files.\" >> \"{log_file}\"\n"
-        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$counter.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
+        script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging batch $batch_counter of 100 BAM files.\" >> \"{log_file}\"\n"
+        script_content += f"        samtools merge \"{temp_dir}/temp_merged_$batch_counter.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
         script_content += f"        if [ $? -ne 0 ]; then\n"
-        script_content += f"            echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging batch.\" >> \"{log_file}\"\n"
+        script_content += f"            echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging batch $batch_counter.\" >> \"{log_file}\"\n"
         script_content += f"            exit 1\n"
         script_content += f"        fi\n"
         script_content += f"        batch_files=()\n"
         script_content += f"        counter=0\n"
+        script_content += f"        batch_counter=$((batch_counter + 1))\n"
         script_content += f"    fi\n"
         script_content += f"done\n"
         script_content += "\n"
@@ -195,11 +204,13 @@ def download_bam_script():
         # Commande pour fusionner les fichiers restants si moins de 100
         script_content += f"if [ \"${{#batch_files[@]}}\" -gt 0 ]; then\n"
         script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - Merging remaining BAM files.\" >> \"{log_file}\"\n"
-        script_content += f"    samtools merge \"{temp_dir}/temp_merged_last.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
+        script_content += f"    samtools merge \"{temp_dir}/temp_merged_$batch_counter.bam\" \"${{batch_files[@]}}\" 2>> \"{log_file}\"\n"
         script_content += f"    if [ $? -ne 0 ]; then\n"
         script_content += f"        echo \"$(date '+%Y-%m-%d %H:%M:%S') - Error merging remaining files.\" >> \"{log_file}\"\n"
         script_content += f"        exit 1\n"
         script_content += f"    fi\n"
+        script_content += f"else\n"
+        script_content += f"    echo \"$(date '+%Y-%m-%d %H:%M:%S') - No remaining files to merge.\" >> \"{log_file}\"\n"
         script_content += f"fi\n"
         script_content += "\n"
 
